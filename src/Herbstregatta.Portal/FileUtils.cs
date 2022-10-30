@@ -1,6 +1,6 @@
 ﻿using Microsoft.JSInterop;
 
-namespace Herbstregatta.Manager
+namespace Herbstregatta.Portal
 {
     public static class FileUtils
     {

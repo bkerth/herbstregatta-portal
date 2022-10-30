@@ -41,7 +41,7 @@
             </MudItem>
 
             <MudItem xs="12">
-                <Herbstregatta.Manager.Shared.Scheduling.AssignedRacesTable @ref="_ref" ShowAdminOption="false" ShowStopwatchOption="true" />
+                <Herbstregatta.Portal.Shared.Scheduling.AssignedRacesTable @ref="_ref" ShowAdminOption="false" ShowStopwatchOption="true" />
             </MudItem>
         </MudGrid>
 
@@ -50,7 +50,7 @@
 </MudContainer>
 
 @code {
-    private Herbstregatta.Manager.Shared.Scheduling.AssignedRacesTable _ref;
+    private Herbstregatta.Portal.Shared.Scheduling.AssignedRacesTable _ref;
 
     private bool _loading = true;
     private string _token = string.Empty;

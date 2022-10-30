@@ -1,6 +1,6 @@
 ﻿using MudBlazor;
 
-namespace Herbstregatta.Manager
+namespace Herbstregatta.Portal
 {
     public static class GlobalDialogOptions
     {
