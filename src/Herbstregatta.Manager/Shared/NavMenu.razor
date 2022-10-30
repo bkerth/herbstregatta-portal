@@ -1,0 +1,14 @@
+﻿<MudNavMenu>
+    <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+
+    <MudNavLink Href="/registration" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AppRegistration">@Resource.Registration</MudNavLink>
+
+    <MudNavGroup Icon="@Icons.Material.Filled.AdminPanelSettings" Title="@Resource.Administration">
+        <MudNavLink Href="/administration/invitation" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AdminPanelSettings">@Resource.RaceInvitation</MudNavLink>
+        <MudNavLink Href="/administration/entries" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AdminPanelSettings">@Resource.RegisteredRaces</MudNavLink>
+        <MudNavLink Href="/administration/scheduling" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AdminPanelSettings">@Resource.RaceScheduling</MudNavLink>
+        <MudNavLink Href="/administration/timetable" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.AdminPanelSettings">Verwaltung des Zeitplans</MudNavLink>
+        <MudNavLink Href="/stopwatch" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Schedule">Zeitmessung</MudNavLink>
+    </MudNavGroup>
+
+</MudNavMenu>

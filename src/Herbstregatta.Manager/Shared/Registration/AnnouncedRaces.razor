@@ -1,0 +1,214 @@
+﻿@using Herbstregatta.Manager.Dialogs.Race
+@using Herbstregatta.Manager.Dialogs.Registration
+@inject IRaceConfigurationService _raceConfigurationService
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
+
+<MudCardContent>
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Default" Indeterminate="true" Class="my-7" />
+    }
+    else
+    {
+        <MudGrid>           
+            <MudItem xs="12" Style="display: flex; justify-content: flex-end; align-items: center;">
+                <MudText Typo="Typo.caption">
+                    @Resource.FurtherInformation
+                </MudText>
+                <MudCheckBox @bind-Checked="_showDetails" Color="Color.Primary" />
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudTable Items="@_configuredRaces" Hover="true" SortLabel="@Resource.SortByLabel">
+                    <HeaderContent>
+                        <MudTh Style="text-align:center;"><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<AnnouncedRace, object>(x=>x.Number)">@Resource.RaceNumber</MudTableSortLabel></MudTh>
+                          <MudTh><MudTableSortLabel SortBy="new Func<AnnouncedRace, object>(x => x.Name)">@Resource.RaceName</MudTableSortLabel></MudTh>
+                        <MudTh><MudTableSortLabel SortBy="new Func<AnnouncedRace, object>(x=>x.Description)">@Resource.Description</MudTableSortLabel></MudTh>
+                        @if (_showDetails)
+                         {
+ 
+                            <MudTh Style="text-align:center;"><MudTableSortLabel SortBy="new Func<AnnouncedRace, object>(x => x.Category)">@Resource.Category</MudTableSortLabel></MudTh>
+                            <MudTh Style="text-align:center;"><MudTableSortLabel SortBy="new Func<AnnouncedRace, object>(x => x.CountOfAthletes)">@Resource.CountOfAthletes</MudTableSortLabel></MudTh>
+                            <MudTh Style="text-align:center;"><MudTableSortLabel SortBy="new Func<AnnouncedRace, object>(x=>x.HasCox)">@Resource.HasCoxQuestion</MudTableSortLabel></MudTh>
+                        }
+                        
+                          @if (ShowAdminContent && _showEditOption)
+                        {
+                            <MudTh Style="text-align:center;">@Resource.Edit</MudTh>
+                        }
+                        else if (SelectedTeam != null)
+                        {
+                            <MudTh Style="text-align:center;">@Resource.Registration</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="@Resource.RaceNumber" Style="text-align:center;">@context.Number</MudTd>
+                        <MudTd DataLabel="@Resource.RaceName">@context.Name</MudTd>
+                        <MudTd DataLabel="@Resource.Description">@context.Description</MudTd>
+                        @if (_showDetails)
+                        {
+                            <MudTd DataLabel="@Resource.Category">@context.Category</MudTd>
+                            <MudTd DataLabel="@Resource.CountOfAthletes" Style="text-align:center;">@context.CountOfAthletes</MudTd>
+                            <MudTd DataLabel="@Resource.HasCoxQuestion" Style="text-align:center;">@GetCoxText(context.HasCox)</MudTd>
+                        }
+
+                        @if (ShowAdminContent && _showEditOption)
+                        {
+                            <MudTd Style="text-align:center;">
+                                <MudIconButton OnClick="() => EditRace(context.Id)"
+                                    Icon="@Icons.Material.Filled.Edit" 
+                                    Color="Color.Warning" 
+                                    Size="Size.Medium" />
+                            </MudTd>
+                        }
+                        else if (SelectedTeam != null)
+                        {
+                            <MudTd Style="text-align:center;">
+                                <MudTooltip Text="@GetCreateRaceEntryTooltip()" Arrow="true" Placement="Placement.Right">
+                                    <MudIconButton OnClick="() => RegisterForRace(context.Id)"
+                                        Icon="@Icons.Material.Filled.PostAdd"
+                                        Color="Color.Info"
+                                        Size="Size.Medium"                                        
+                                        Disabled=@IsCreateRaceEntryDisabled() />
+                                </MudTooltip>
+                            </MudTd>
+                        }
+                    </RowTemplate>
+                    <PagerContent>
+                        <MudTablePager HidePageNumber="true" HideRowsPerPage="true" HorizontalAlignment="HorizontalAlignment.Center" />
+                    </PagerContent>
+                </MudTable>
+            </MudItem>
+            @if (ShowAdminContent)
+            {
+                <MudItem xs="6">
+                    <MudButton OnClick="CreateNewRace" Variant="Variant.Outlined" Color="Color.Primary">@Resource.CreateNewRace</MudButton>
+                </MudItem>
+                <MudItem xs="6" Style="display: flex; justify-content: flex-end; align-items: center;">
+                    <MudText Typo="Typo.caption">
+                        @Resource.ShowEditOption
+                    </MudText>
+                    <MudCheckBox @bind-Checked="_showEditOption" Color="Color.Secondary" />
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudCardContent>
+
+
+@code {
+    [Parameter]
+    public SelectedTeamData? SelectedTeam { get; set; }
+
+    [Parameter]
+    public bool ShowAdminContent { get; set;} = false;
+
+
+    private IReadOnlyCollection<AnnouncedRace> _configuredRaces { get; set; } = new List<AnnouncedRace>();
+
+    private bool _showDetails = false;
+    private bool _showEditOption = false;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _configuredRaces = await _raceConfigurationService.GetConfiguredRacesAsync();
+        _loading = false;
+
+        return;
+    }
+
+    private string GetCoxText(bool hasCox)
+    {
+        return hasCox ? Resource.Yes : Resource.No;
+    }
+
+    private string GetCreateRaceEntryTooltip()
+    {
+        if (SelectedTeam?.SelectedTeam == null)
+        {
+            return Resource.RegistrationBeforeLoginText;
+        }
+
+        return Resource.RegistrationAfterLoginText;
+    }
+
+    private bool IsCreateRaceEntryDisabled()
+    {
+        return SelectedTeam?.SelectedTeam == null;
+    }
+
+    private async Task CreateNewRace()
+    {
+        var nextRaceNumber = 1;
+        var hightestRaceByRaceNumber = _configuredRaces.OrderBy(r => r.Number).LastOrDefault();
+        if (hightestRaceByRaceNumber != null)
+        {
+            nextRaceNumber = hightestRaceByRaceNumber.Number + 1;
+        }
+
+        var parameters = new DialogParameters { ["NextRaceNumber"] = nextRaceNumber };
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = _dialogService.Show<CreateRaceDialog>(Resource.CreateRace, parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Cancelled)
+        {
+            _snackbar.Add(Resource.CreateRaceAbortMessage, Severity.Error);
+        }
+        else
+        {
+            _snackbar.Add(Resource.CreateRaceSuccessMessage, Severity.Info);
+        }
+
+        _configuredRaces = await _raceConfigurationService
+            .GetConfiguredRacesAsync()
+            .ConfigureAwait(false);
+    }
+
+    private async Task EditRace(int id)
+    {
+        var raceConfig = _configuredRaces.FirstOrDefault(r => r.Id.Equals(id));
+        if (raceConfig == null)
+        {
+            return;
+        }
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var parameters = new DialogParameters
+            {
+                ["Race"] = raceConfig
+            };
+
+        var dialog = _dialogService.Show<EditRaceDialog>(Resource.Edit, parameters, options);
+        var result = await dialog.Result;
+
+        return;
+    }
+    
+    private async Task RegisterForRace(int id)
+    {
+        var raceConfig = _configuredRaces.FirstOrDefault(r => r.Id.Equals(id));
+        if (raceConfig == null)
+        {
+            return;
+        }
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var parameters = new DialogParameters 
+        { 
+            ["Race"] = raceConfig,
+            ["TeamData"] = SelectedTeam
+        };
+
+        var dialog = _dialogService.Show<CreateRaceRegistrationDialog>(Resource.RaceRegistration, parameters, options);
+        var result = await dialog.Result;
+
+        return;
+    }
+}

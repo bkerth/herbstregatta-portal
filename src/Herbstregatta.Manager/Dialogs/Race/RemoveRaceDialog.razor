@@ -1,0 +1,112 @@
+﻿@inject IRaceConfigurationService _raceConfigService
+@inject ISnackbar _snackbar
+
+<MudContainer Style="max-height: 70vh; overflow-y: auto;">
+    <MudDialog DisableSidePadding="true">
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Delete" Class="mr-3 mb-n1"/>
+                @Resource.DeleteRace
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Value="RaceConfiguration.Id" Label="Id" ReadOnly=true />    
+                </MudItem>
+
+                <MudItem xs="4">
+                    <MudNumericField Value="RaceConfiguration.Number" Label="Nummer des Rennens" HideSpinButtons="true" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField Value="RaceConfiguration.Name" Label="Bezeichnung" ReadOnly=true />
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField Value="RaceConfiguration.Description" Label="Beschreibung" ReadOnly=true />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField Value="RaceConfiguration.Category" Label="Kategory" ReadOnly=true />
+                </MudItem>
+
+                <MudItem xs="6">
+                    <MudNumericField Value="RaceConfiguration.CountOfAthletes" Label="Anzahl Athleten" HideSpinButtons="true" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudCheckBox Checked="RaceConfiguration.HasCox" Label="Ist gesteuert?" Disabled="true" />
+                </MudItem>
+
+                <MudSpacer />
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="confirmationId" Label="ConfirmationId" Required="true" />
+                </MudItem>
+                
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton OnClick="Delete" Color="Color.Primary">Delete</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudContainer>
+
+@code {
+    [CascadingParameter] 
+    MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public AnnouncedRace RaceConfiguration { get; set; } = new AnnouncedRace();
+
+    private string token = string.Empty;
+    private string confirmationId = string.Empty;
+
+
+    private List<string> errors = new List<string>();
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private bool ValidateInputs()
+    {
+        bool success = true;
+
+        if (string.IsNullOrEmpty(token))
+        {
+            errors.Add("Token must not be empty!");
+            success = false;
+        }
+        if (string.IsNullOrEmpty(confirmationId))
+        {
+            errors.Add("ConfirmationId must not be empty!");
+            success = false;
+        }
+        return success;
+    }
+
+    private async Task Delete()
+    {
+        if (!ValidateInputs())
+        {
+            return;
+        }
+
+        if (!confirmationId.Equals(RaceConfiguration.Id))
+        {
+            _snackbar.Add("Id does not match! Please confirm the reset!", Severity.Error);
+            return;
+        }
+
+        var result = await _raceConfigService.RemoveRaceConfigurationAsync(RaceConfiguration.Id, token);
+        if (result)
+        {
+            MudDialog?.Close(DialogResult.Ok(confirmationId));
+        }
+        else
+        {
+            MudDialog?.Close(DialogResult.Cancel());
+        }
+        return;
+    }
+}

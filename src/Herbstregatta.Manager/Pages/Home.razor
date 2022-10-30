@@ -1,0 +1,34 @@
+﻿@page "/"
+@inject NavigationManager _navigationManager;
+
+<MudContainer Class="mt-16">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@Resource.Title</MudText>
+    <MudText Typo="Typo.h5" Align="Align.Center">@Resource.RegistrationPortal</MudText>
+
+    @if (_navigateTo)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12">
+                <Herbstregatta.Manager.Shared.Registration.RaceInvitation />
+            </MudItem>
+            <MudItem xs="12" Style="margin-top:-16px; padding: 6px 24px">
+                <MudButton Variant="Variant.Filled" FullWidth="true" StartIcon="@Icons.Material.Filled.AppRegistration" Color="Color.Secondary" OnClick="OnRegistration">@Resource.RaceRegistration</MudButton>
+            </MudItem>
+        </MudGrid>
+    }
+    
+</MudContainer>
+
+@code {
+    private bool _navigateTo = false;
+
+    private void OnRegistration()
+    {
+        _navigateTo = true;
+        _navigationManager.NavigateTo("/registration", true);
+    }
+}

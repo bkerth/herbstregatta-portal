@@ -1,0 +1,147 @@
+﻿@using Herbstregatta.Manager.Dialogs.RaceSchedule
+@inject IBackupService _backupService
+@inject IDialogService _dialogService
+
+<MudContainer Class="mt-16">
+    <MudGrid>
+    @if (_errors.Count != 0)
+    {
+        <MudItem xs="12">
+            <MudList>
+                @foreach (var err in _errors)
+                {
+                    <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                }
+            </MudList>
+        </MudItem>
+    }
+
+    <MudItem xs="12" Class="d-flex align-center gap-4">
+        <MudTextField Label="@Resource.AdminToken" HelperText="@Resource.AdminTokenHelperText" 
+                @bind-Value="_token" InputType="InputType.Password"
+                          Disabled="@(_loading)" />
+        <MudButton Variant="Variant.Outlined"
+                Color="Color.Secondary"
+                StartIcon="@Icons.Material.Filled.NavigateNext"
+                       Disabled="@(_loading)"
+                OnClick="LoadDataAsManagement">
+            @Resource.LoadTable
+        </MudButton>
+    </MudItem>
+
+    @if(_selectedEntries.Count > 0)
+    {
+        <MudItem xs="12" Class="d-flex justify-space-between">
+            <MudText Typo="Typo.subtitle1">@Resource.RaceScheduling</MudText>
+            <MudButton Variant="Variant.Outlined"
+                    Color="Color.Secondary"
+                    StartIcon="@Icons.Material.Filled.Add"
+                       Disabled="@(_loading)"
+                    OnClick="AssignSelectedRaces">
+                        @Resource.AssignSelectedRacesToRun
+            </MudButton>
+        </MudItem>
+    }
+ 
+    </MudGrid>
+</MudContainer>
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge">
+    <MudGrid>
+
+        <MudItem xs="6">
+            <UnassignedRacesTable SelectedRaceEntries="OnSelectedItemsChanged" @ref="_unassignedRaceEntriesTable"/>
+        </MudItem>
+
+        <MudItem xs="6">
+            <AssignedRacesTable @ref="_raceSchedulingTable" ShowAdminOption="true" />
+        </MudItem>
+
+    </MudGrid>
+</MudContainer>
+
+
+@code {
+    private UnassignedRacesTable _unassignedRaceEntriesTable;
+    private AssignedRacesTable _raceSchedulingTable;
+
+    private bool _loading = false;
+    private string _token = string.Empty;
+
+    private const int MaxEntriesPerScheduledRaces = 3;
+
+    private List<string> _errors = new List<string>();
+
+    private HashSet<RegisteredRace> _selectedEntries = new HashSet<RegisteredRace>();
+
+    private void OnSelectedItemsChanged(HashSet<RegisteredRace> elements)
+    {
+        _selectedEntries = elements;
+    }
+
+    private async Task LoadDataAsManagement()
+    {
+        if (string.IsNullOrWhiteSpace(_token))
+        {
+            _errors.Add("Please enter the token for management!");
+            return;
+        }
+
+        _loading = true;
+        await Task.Delay(1);
+
+        await _unassignedRaceEntriesTable.LoadData(_token);
+        await Task.Delay(1);
+
+        await _raceSchedulingTable.LoadData(_token);
+        await Task.Delay(1);
+
+        _loading = false;
+        await Task.Delay(1);
+    }
+
+    private async Task AssignSelectedRaces()
+    {
+        AnnouncedRace raceConfiguration = new();
+        List<AssignedRace> assignedRaceEntries = new();
+
+        if (_selectedEntries != null && _selectedEntries.Any())
+        {
+            var raceEntry = _selectedEntries.FirstOrDefault();
+
+            if (raceEntry != default)
+            {
+                raceConfiguration = raceEntry.AnnouncedRace;
+            }
+
+            foreach (var race in _selectedEntries)
+            {
+                var assignedRaceEntry = new AssignedRace
+                    {
+                        RegisteredRace = race,
+                        Track = $"{Resource.RaceTrack} {assignedRaceEntries.Count + 1}",
+                    };
+                assignedRaceEntries.Add(assignedRaceEntry);
+            }
+        }
+
+        var scheduledRace = new ScheduledRace
+        {
+            RunNumber = "",
+            AnnouncedRace = raceConfiguration,
+            AssignedRaces = assignedRaceEntries,
+            PlannedStartTime = DateTime.Parse("2022/10/08 11:00:00")
+        };
+
+
+        var parameters = new DialogParameters
+            {
+                [nameof(RaceSchedulingDialog.ScheduledRace)] = scheduledRace
+            };
+
+        var dialog = _dialogService.Show<RaceSchedulingDialog>(Resource.RaceScheduling, parameters, GlobalDialogOptions.FullWidthDialogOptions());
+        var result = await dialog.Result;
+
+        await LoadDataAsManagement();
+    }
+}

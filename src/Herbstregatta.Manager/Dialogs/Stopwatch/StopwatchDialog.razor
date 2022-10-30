@@ -1,0 +1,606 @@
+﻿@inject IStopwatchService _stopwatchService
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+@inject IBackupService _backupService
+@inject Microsoft.JSInterop.IJSRuntime _jsRuntime
+
+<MudContainer Style="max-height: 70vh; overflow-y: auto;">
+    <MudDialog DisableSidePadding="true">
+        <DialogContent>
+            <MudGrid>
+                @if (_errors.Count != 0)
+                {
+                    <MudItem xs="12">
+                        <MudList>
+                            @foreach (var err in _errors)
+                            {
+                                <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                            }
+                        </MudList>
+                    </MudItem>
+                }
+                <MudItem xs="12" Style="display: flex; justify-content: flex-end; align-items: center;">
+                    <MudText Typo="Typo.caption">
+                        Enable Danger Zone!!
+                    </MudText>
+                    <MudCheckBox @bind-Checked="_dangerFunctions" Color="Color.Primary" />
+                </MudItem>
+
+                <!-- Allgemeine Informationen zum Rennnen -->
+                
+                @if (ScheduledRace.AnnouncedRace != null)
+                {
+                    <MudItem xs="4">
+                        <MudTextField @bind-Value="ScheduledRace.AnnouncedRace.Number" Label="@Resource.RaceNumber" ReadOnly="true" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudTextField @bind-Value="ScheduledRace.AnnouncedRace.Name" Label="@Resource.RaceName" ReadOnly="true" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudTextField @bind-Value="ScheduledRace.AnnouncedRace.Description" Label="@Resource.Description" ReadOnly="true" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="ScheduledRace.AnnouncedRace.Category" Label="@Resource.Category" ReadOnly="true" />
+                    </MudItem>
+                }
+                        
+                <MudItem xs="6">
+                    <MudTextField Value="ScheduledRace.PlannedStartTime.Date" Label="@Resource.Date" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Value="ScheduledRace.PlannedStartTime.TimeOfDay" Label="@Resource.StartTime" ReadOnly="true" />
+                </MudItem>
+
+                <!-- Informationen zur Zeitnahme -->
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_name" Label="@Resource.Name" Required="true" />
+                </MudItem>
+                
+                @if (_timerIsRunning)
+                {
+                    <MudItem xs="12">
+                        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+                    </MudItem>
+                }
+                
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_startTime" Label="Startzeit" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Value="@_durationValue.TotalSeconds" Label="Duration" Adornment="Adornment.End" AdornmentText="Seconds" ReadOnly=true />
+                </MudItem>
+
+                <MudItem xs="4" Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="StartTimer" Disabled="_timerIsRunning || !string.IsNullOrEmpty(_startTime)" >Start</MudButton>
+                </MudItem>
+                <MudItem xs="4" Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="SplitTimer" Disabled="!_timerIsRunning">Split</MudButton>
+                </MudItem>
+                <MudItem xs="4" Class="d-flex justify-center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" OnClick="StopTimer" Disabled="!_timerIsRunning">Stop</MudButton>
+                </MudItem>
+            
+                <MudItem xs="12">
+                    <MudTable Hover="true" Breakpoint="Breakpoint.Sm" Dense="true" 
+                            T="TimeSplit" Items="@_timeSplits">
+
+                        <HeaderContent>
+                            <MudTh>Placing</MudTh>
+                            <MudTh>Duration</MudTh>
+                            <MudTh>Select</MudTh>
+                            @*<MudTh>@Resource.Swap</MudTh>*@
+                            <MudTh>Delete</MudTh>
+                        </HeaderContent>
+
+                        <RowTemplate>
+                        
+                            <MudTd DataLabel="Id">
+                                @context.Placing
+                            </MudTd>
+
+                            <MudTd DataLabel="Duration [s]">
+                                @context.Duration.TotalSeconds
+                            </MudTd>
+
+                            <MudTd DataLabel="Duration [s]">
+                                <MudSelect Label="Team" AnchorOrigin="Origin.BottomCenter"
+                                    T="AssignedRace" @bind-Value="context.AssignedRaceEntry">
+                                    @foreach(var entry in _assignedRaceEntries)
+                                    {
+                                        <MudSelectItem Value="@entry">
+                                            <p><b>@entry.Track</b> @entry.RegisteredRace.ToScheduledTeamInfo()</p>
+                                        </MudSelectItem>    
+                                    }
+                                </MudSelect>
+                            </MudTd>
+                            
+                            @*<MudTd DataLabel="Duration [s]">
+                                @context.AssignedRaceEntry.ToEntryinfo()
+                            </MudTd>
+
+                            <MudTd DataLabel="@Resource.Swap">
+                                <div class="d-flex flex-row">
+                                    <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="() => MoveUp(context)" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="() => MoveDown(context)" />
+                                </div>
+                            </MudTd>*@
+
+                            <MudTd Style="text-align:center;">
+                                    <MudIconButton 
+                                        Color="Color.Primary"
+                                        Icon="@Icons.Material.Filled.Delete"
+                                        Size="Size.Medium"
+                                        OnClick="() => DeleteSplitTime(context)" />
+                            </MudTd>
+
+                        </RowTemplate>
+
+                    </MudTable>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_token" Label="@Resource.AdminToken" HelperText="@Resource.AdminTokenHelperText" InputType="InputType.Password" />
+                </MudItem>
+            
+            </MudGrid>
+        </DialogContent>
+
+        <DialogActions>
+            <div class="d-flex justify-space-between flex-grow-1 gap-4">
+                @if (_dangerFunctions)
+                {
+                    <MudButton Color="Color.Primary" OnClick="ResetMeasurement">Löschen der Zeitnahme</MudButton>
+                }
+                <div>
+                    <MudButton OnClick="Cancel">Schließen</MudButton>
+                    <MudButton OnClick="ExportDataAsManagement">Download</MudButton>
+                    <MudButton Color="Color.Primary" OnClick="Submit">Speichern</MudButton>
+                </div>
+            </div>
+        </DialogActions>
+    </MudDialog>
+</MudContainer>
+
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public ScheduledRace ScheduledRace { get; set; } = new();
+
+    private TimeMeasurement? _timeMeasurement;
+
+    private string _token = string.Empty;
+    private string _name = string.Empty;
+
+    private bool _dangerFunctions;
+    private bool _timerIsRunning;
+
+    private string _startTime = string.Empty;
+
+    private TimeSpan _durationValue = new TimeSpan();
+    private ICollection<TimeSplit> _timeSplits = new List<TimeSplit>();
+    private List<AssignedRace> _assignedRaceEntries = new List<AssignedRace>();
+    private List<string> _errors = new List<string>();
+
+    private readonly object _updateTimeMeasurementLock = new();
+    private readonly object _updateTimeSplitsLock = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (ScheduledRace == null) 
+        {
+            return;
+        }
+
+        await FetchTimeMeasurement();
+
+        // Start stopwatch and check if other timer has stated selected race.
+        await Stopwatch();
+    }
+
+    private async Task FetchTimeMeasurement()
+    {
+        var timeMeasurement = await _stopwatchService.GetTimeMeasurementByScheduledRaceId(ScheduledRace.Id);
+        if (timeMeasurement == null)
+        {
+            try
+            {
+                timeMeasurement = await _stopwatchService.CreateEmptyTimeMeasurement(ScheduledRace);
+            }
+            catch (Exception ex)
+            {
+                _snackbar.Add($"Failed to create a new time measurement! Message={ex}");
+            }
+        }
+
+        lock (_updateTimeMeasurementLock)
+        {
+            _timeMeasurement = timeMeasurement;
+        }
+
+        if(_timeMeasurement != null)
+        {
+            var timeSplits = await _stopwatchService.GetSplitTimesForTimeMeasurement(_timeMeasurement);
+
+            lock (_updateTimeSplitsLock)
+            {
+                _timeSplits = timeSplits;
+            }
+        }
+
+        RefreshView();
+    }
+
+    private void RefreshView()
+    {
+        lock (_updateTimeMeasurementLock)
+        {
+            if (_timeMeasurement == null)
+            {
+                return;
+            }
+
+            _assignedRaceEntries = _timeMeasurement.Race.AssignedRaces.ToList();
+
+            if (string.IsNullOrEmpty(_name))
+            {
+                _name = _timeMeasurement.VerifiedByName;
+            }
+
+            if (_timeMeasurement.StartTime != null)
+            {
+                _startTime = _timeMeasurement.StartTime.RecordedDeviceTime.ToLocalTime().ToString("HH:mm:ss.fff");
+
+                if (_timeMeasurement.StopTime == null)
+                {
+                    _timerIsRunning = true;
+                    _durationValue = DateTimeOffset.Now
+                                        .Subtract(_timeMeasurement.StartTime.RecordedDeviceTime);
+                }
+                else
+                {
+                    _durationValue = _timeMeasurement.StopTime.RecordedDeviceTime
+                                        .Subtract(_timeMeasurement.StartTime.RecordedDeviceTime);
+                }
+            }
+            else
+            {
+                _startTime = string.Empty;
+                _durationValue = new TimeSpan();
+            }
+        }
+
+        StateHasChanged();        
+    }
+
+    private async Task StartTimer()
+    {
+        if (_timeMeasurement == null) 
+        {
+            return;
+        }
+
+        try
+        {
+            _timerIsRunning = true;
+            var startedTimeMeasurement = await _stopwatchService.StartTimeMeasurement(_timeMeasurement.Id, DateTimeOffset.Now, _name);
+            lock (_updateTimeMeasurementLock) 
+            {
+                _timeMeasurement = startedTimeMeasurement;
+            }
+
+            RefreshView();
+        }
+        catch (Exception)
+        {
+            _snackbar.Add("Failed to start the time measurement, please try again!", Severity.Error);
+            _timerIsRunning = false;
+        }
+    }
+
+    private async Task SplitTimer()
+    {
+        if (_timeMeasurement == null) 
+        {
+            return;
+        }
+
+        try
+        {
+            _timerIsRunning = true;
+            var timeSplits = await _stopwatchService.SplitTimeMeasurement(_timeMeasurement.Id, DateTimeOffset.Now, _name);
+            lock (_updateTimeSplitsLock)
+            {
+                _timeSplits = timeSplits;
+            }
+
+            RefreshView();
+        }
+        catch (Exception)
+        {
+            _snackbar.Add("Failed to set a split the time, please try again!", Severity.Error);
+            _timerIsRunning = false;
+        }
+    }
+
+    private async Task StopTimer()
+    {
+        if (_timeMeasurement == null)
+        {
+            return;
+        }
+
+        try
+        {
+            var stoppedTimeMeasurement = await _stopwatchService.StopTimeMeasurement(_timeMeasurement.Id, DateTimeOffset.Now, _name);
+            lock (_updateTimeMeasurementLock) 
+            {
+                _timeMeasurement = stoppedTimeMeasurement;
+            }
+
+            var timeSplits = await _stopwatchService.GetSplitTimesForTimeMeasurement(_timeMeasurement);
+            lock (_updateTimeSplitsLock)
+            {
+                _timeSplits = timeSplits;
+            }
+
+            _timerIsRunning = false;
+
+            RefreshView();
+        }
+        catch (Exception)
+        {
+            _snackbar.Add("Failed to stop the time measurement, please try again!", Severity.Error);
+        }
+    }
+
+    private async Task DeleteSplitTime(TimeSplit splitTime)
+    {
+        bool? result = await _dialogService.ShowMessageBox(
+            "Warning", "Deleting the split time can not be undone!",
+            yesText: "Delete!", cancelText: "Cancel");
+
+        if (result == null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_token))
+        {
+            _snackbar.Add("Enter admin token to delete this measurement!", Severity.Error);
+            return;
+        }
+
+        try
+        {
+            var timeSplits = await _stopwatchService.DeleteSplitTimeMeasurement(_token, splitTime.Id);
+            lock (_updateTimeSplitsLock)
+            {
+                _timeSplits = timeSplits;
+            }
+            _token = string.Empty;
+        }
+        catch(UnauthorizedAccessException)
+        {
+            _snackbar.Add("Invalid token!", Severity.Error);
+        }
+        catch (Exception)
+        {
+            _snackbar.Add("Failed to delete the split time, please try again!", Severity.Error);
+        }
+    }
+
+    private async Task ResetMeasurement()
+    {
+        if (_timeMeasurement == null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_token))
+        {
+            _snackbar.Add("Enter admin token to delete this measurement!", Severity.Error);
+            return;
+        }
+
+        bool? result = await _dialogService.ShowMessageBox(
+            "Warning", "Deleting the time measurement can not be undone!",
+            yesText: "Delete!", cancelText: "Cancel");
+
+        if (result == null)
+        {
+            return;
+        }
+
+        try 
+        {
+            var timeMeasurement = await _stopwatchService.ResetTimeMeasurement(_token, _timeMeasurement.Id);
+            lock (_updateTimeMeasurementLock)
+            {
+                _timeMeasurement = timeMeasurement;
+            }
+
+            _token = string.Empty;
+            _timeSplits = new List<TimeSplit>();
+            _assignedRaceEntries = new List<AssignedRace>();
+
+            RefreshView();
+
+            await Stopwatch();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            _snackbar.Add("Invalid token!", Severity.Error);
+        }
+        catch (Exception)
+        {
+            _snackbar.Add("Failed to reset the time measurement, please try again!", Severity.Error);
+        }
+    }
+
+    private async Task Submit()
+    {
+        if (_timeMeasurement == null)
+        {
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_token))
+        {
+            _errors.Add("Bitte gebe das Passwort an!");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_token))
+        {
+            _errors.Add("Bitte gebe deinen Namen an!");
+            return;
+        }
+
+        bool? result = await _dialogService.ShowMessageBox(
+            "Warning", "Das Rennen wird beendet!",
+            yesText: "Ok", cancelText: "Abbruch!");
+
+        if (result == null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _stopwatchService.SaveTimeMeasurement(_timeMeasurement, _timeSplits, _name);
+            MudDialog?.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Failed to save the time measurement, please try again! Error={ex}", Severity.Error);
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private async Task ExportDataAsManagement()
+    {
+        if (_timeMeasurement == null)
+        {
+            return;
+        }
+
+        try
+        {
+            var excelStream = _backupService.ExportTimeMeasurementToExcel(_timeMeasurement, _timeSplits);
+
+            string raceName = $"{_timeMeasurement.Race.AnnouncedRace.Number}_{_timeMeasurement.Race.RunNumber}";
+
+            string fileName = $"Herbstregatta-Ergebnis-{raceName}-{DateTime.Now.ToString("dd-MM-yyyy_HH-mm")}.xlsx";
+
+            await _jsRuntime.SaveAs(fileName, excelStream.ToArray());
+        }
+        catch (Exception)
+        {
+            _snackbar.Add("Failed to pepare data to download..");
+        }
+
+        return;
+    }
+
+
+    private bool _internalStopwatchStarted = false;
+
+    private async Task Stopwatch()
+    {
+        try
+        {
+            if (_timeMeasurement == null || ScheduledRace == null)
+            {
+                return;
+            }
+
+            if (_internalStopwatchStarted)
+            {
+                // Update function already started
+                return;
+            }
+
+            _internalStopwatchStarted = true;
+
+            do
+            {
+                await FetchTimeMeasurement();
+                await Task.Delay(TimeSpan.FromSeconds(10));
+
+            } while (!_timerIsRunning);
+
+            // Race has been started now
+            while (_timerIsRunning)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2));
+                if (_timerIsRunning)
+                {
+                    RefreshView();
+                }
+
+                await FetchTimeMeasurement();
+            }
+            // Race has been stopped
+        }
+        catch(Exception)
+        {
+            // Ignore this..
+        }
+        finally
+        {
+            _internalStopwatchStarted = false;
+        }
+    }
+
+    //private void MoveUp(TimeSplit timeSplit)
+    //{
+    //    var list = _timeSplits.ToList();
+
+    //    var oldPosition = list.IndexOf(timeSplit);
+    //    var newPosition = oldPosition - 1;
+
+    //    if (newPosition < 0)
+    //    {
+    //        newPosition = list.Count - 1;
+    //    }
+
+    //    var entryAtNewPost = list.ElementAt(newPosition);
+    //    var tmp = entryAtNewPost.AssignedRaceEntry;
+
+    //    entryAtNewPost.AssignedRaceEntry = timeSplit.AssignedRaceEntry;
+    //    timeSplit.AssignedRaceEntry = tmp;
+
+    //    _timeSplits = list;
+    //}
+
+    //private void MoveDown(TimeSplit timeSplit)
+    //{
+    //    var list = _timeSplits.ToList();
+
+    //    var oldPosition = list.IndexOf(timeSplit);
+    //    var newPosition = oldPosition + 1;
+
+    //    if (newPosition > list.Count - 1)
+    //    {
+    //        newPosition = 0;
+    //    }
+
+    //    var entryAtNewPost = list.ElementAt(newPosition);
+    //    var tmp = entryAtNewPost.AssignedRaceEntry;
+
+    //    entryAtNewPost.AssignedRaceEntry = timeSplit.AssignedRaceEntry;
+    //    timeSplit.AssignedRaceEntry = tmp;
+
+    //    _timeSplits = list;
+    //}
+}

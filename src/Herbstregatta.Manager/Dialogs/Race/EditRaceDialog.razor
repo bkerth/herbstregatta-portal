@@ -1,0 +1,176 @@
+﻿@inject IRaceConfigurationService _raceConfigService
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+
+<MudContainer Style="max-height: 70vh; overflow-y: auto;">
+    <MudDialog DisableSidePadding="true">
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3 mb-n1"/>
+                @Resource.EditRace
+            </MudText>
+        </TitleContent>
+        <DialogContent>        
+            <MudGrid>
+                @if (errors.Count != 0) 
+                {
+                <MudItem xs="12">
+                    <MudList>
+                        @foreach (var err in errors)
+                        {
+                            <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                        }
+                    </MudList>
+                </MudItem>
+                }
+
+                <MudItem xs="4">
+                    <MudNumericField @bind-Value="raceNumber" Label="@Resource.RaceNumber" HideSpinButtons="true" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField @bind-Value="name" Label="@Resource.RaceName" Required=true />
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField @bind-Value="description" Label="@Resource.Description" Required=true />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="category" Label="@Resource.Category" Required=true />
+                </MudItem>
+                               
+                <MudItem xs="6">
+                    <MudNumericField @bind-Value="countOfAthletes" Label="@Resource.CountOfAthletes" Required=true HideSpinButtons="true" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudCheckBox @bind-Checked="hasCox" Label="@Resource.HasCoxQuestion"/>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="token" Label="@Resource.AdminToken" HelperText="@Resource.AdminTokenHelperText" InputType="InputType.Password" Required=true />
+                </MudItem>
+            </MudGrid>
+            <MudExpansionPanels DisableBorders="true" Elevation="0" Dense="true">
+                <MudExpansionPanel Text="@Resource.DeleteRace">
+                    <MudButton OnClick="Delete" Color="Color.Error">@Resource.Delete</MudButton>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+                    
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">@Resource.Cancel</MudButton>
+            <MudButton OnClick="SaveChanges" Color="Color.Primary">@Resource.Edit</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudContainer>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public AnnouncedRace Race { get; set; } = default!;
+
+    private string token = string.Empty;
+
+    private string name = string.Empty;
+    private int raceNumber = 0;
+    private string description = string.Empty;
+    private string category = string.Empty;
+    private int countOfAthletes = 0;
+    private bool hasCox;
+
+    private List<string> errors = new List<string>();
+
+    protected override void OnParametersSet()
+    {
+        raceNumber = Race.Number;
+        name = Race.Name;
+        description = Race.Description;
+        category = Race.Category;
+        countOfAthletes = Race.CountOfAthletes;
+        hasCox = Race.HasCox;
+
+        base.OnParametersSet();
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private bool ValidateInputs()
+    {
+        bool success = true;
+
+        if (string.IsNullOrEmpty(token))
+        {
+            errors.Add(Resource.MissingToken);
+            success = false;
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            errors.Add(Resource.MissingRaceName);
+            success = false;
+        }
+        if (string.IsNullOrEmpty(category))
+        {
+            errors.Add(Resource.MissingCategory);
+            success = false;
+        }
+        if (string.IsNullOrEmpty(description))
+        {
+            errors.Add(Resource.MissingDescription);
+            success = false;
+        }
+        return success;
+    }
+
+    private async Task SaveChanges()
+    {
+        if (!ValidateInputs())
+        {
+            _snackbar.Add(Resource.EditRaceFailedMessage, Severity.Error);
+            return;
+        }
+
+        var result = await _raceConfigService.CreateOrUpdateRaceConfigurationAsync(raceNumber, name, description, category, countOfAthletes, hasCox, token);
+
+        if (result != null)
+        {
+            _snackbar.Add(Resource.EditRaceSuccessMessage, Severity.Success);
+            MudDialog?.Close(DialogResult.Ok(result.Id));
+            return;
+        }
+
+        _snackbar.Add(Resource.EditRaceFailedMessage, Severity.Error);
+    }
+
+    private async Task Delete()
+    {
+        if (!ValidateInputs())
+        {
+            _snackbar.Add(Resource.EditRaceFailedMessage, Severity.Error);
+            return;
+        }
+
+
+        bool? dialogResult = await _dialogService.ShowMessageBox(
+            Resource.Attention,
+            Resource.AttentionDeleteMessage,
+            yesText: Resource.Delete, 
+            cancelText: Resource.Cancel);
+
+        if (dialogResult == null)
+        {
+            // Canceled
+            return;
+        }
+
+        if (await _raceConfigService.RemoveRaceConfigurationAsync(Race.Id, token))
+        {
+            MudDialog?.Close(DialogResult.Ok(Race.Id));
+            return;
+        }
+    }
+}

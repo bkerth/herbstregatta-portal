@@ -1,0 +1,95 @@
+﻿@inject IRaceRegistrationService _raceEntryService;
+
+<MudContainer Style="max-height: 40vh; overflow-y: auto;">
+    <MudDialog DisableSidePadding="true">
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Login" Class="mr-3 mb-n1"/>
+                @Resource.Login
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                @if (_errors.Count != 0)
+                {
+                    <MudItem xs="12">
+                        <MudList>
+                            @foreach (var err in _errors)
+                            {
+                                <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                            }
+                        </MudList>
+                    </MudItem>
+                }
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_name" Label="@Resource.Club" Required=true />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_password" Label="@Resource.TeamPassword" Required=true InputType="InputType.Password" />
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">@Resource.Cancel</MudButton>
+            <MudButton OnClick="Login" Color="Color.Primary">@Resource.Login</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudContainer>
+@code {
+    [Parameter]
+    public Team SelectedTeam { get; set; } = new Team();
+
+
+    [CascadingParameter]
+    MudDialogInstance? MudDialog { get; set; }
+
+    private string _name = string.Empty;
+    private string _password = string.Empty;
+
+    private List<string> _errors = new List<string>();
+
+    protected override void OnParametersSet()
+    {
+        _name = SelectedTeam.Name;
+
+        base.OnParametersSet();
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private bool ValidateInputs()
+    {
+        bool success = true;
+
+        if (string.IsNullOrEmpty(_name))
+        {
+            _errors.Add("Team name must not be empty!");
+            success = false;
+        }
+
+        if (string.IsNullOrEmpty(_password))
+        {
+            _errors.Add("Pasword name must not be empty!");
+            success = false;
+        }
+        return success;
+    }
+
+    private void Login()
+    {
+        if (!ValidateInputs())
+        {
+            return;
+        }
+        if(!_raceEntryService.IsTeamTokenValid(SelectedTeam.Id, _password))
+        {
+            _errors.Add("Incorrect Password"!);
+            return;
+        }
+        MudDialog?.Close(DialogResult.Ok(_password));
+        return;
+    }
+}

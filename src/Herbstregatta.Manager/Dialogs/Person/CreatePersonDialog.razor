@@ -1,0 +1,92 @@
+@inject IRaceRegistrationService _entryService
+@inject ISnackbar _snackbar
+
+<MudContainer Style="max-height: 70vh; overflow-y: auto;">
+    <MudDialog DisableSidePadding="true">
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-3 mb-n1"/>
+                @Resource.CreatePerson
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+
+            <MudGrid>
+                @if (errors.Count != 0) 
+                {
+                <MudItem xs="12">
+                    <MudList>
+                        @foreach (var err in errors)
+                        {
+                            <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                        }
+                    </MudList>
+                </MudItem>
+                }
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="PersonData.FirstName" Label="@Resource.FirstName" Required=true/>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="PersonData.Name" Label="@Resource.Name" Required=true/>
+                </MudItem>
+                <MudItem xs="2">
+                    <MudTextField @bind-Value="PersonData.Year" Label="@Resource.BirthYear" Required=true />
+                </MudItem>
+            </MudGrid>
+            
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">@Resource.Cancel</MudButton>
+            <MudButton OnClick="SaveChanges" Color="Color.Primary">@Resource.Create</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudContainer>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public Person PersonData { get; set; }
+    [Parameter] public int TeamId { get; set; }
+    [Parameter] public string TeamPassword { get; set; }
+
+    private List<string> errors = new List<string>();
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private bool ValidateInputs()
+    {
+        bool success = true;
+        if (string.IsNullOrEmpty(PersonData.Name))
+        {
+            errors.Add("Name must not be empty!");
+            success = false;
+        }
+        if (string.IsNullOrEmpty(PersonData.FirstName))
+        {
+            errors.Add("First name must not be empty!");
+            success = false;
+        }
+        if (!(1900 <= PersonData.Year && PersonData.Year < 2022))
+        {
+            errors.Add("Year of birth must be between 1900 and 2022!");
+            success = false;
+        }
+        return success;
+    }
+
+    private async Task SaveChanges()
+    {
+        if (!ValidateInputs())
+        {
+            return;
+        }
+
+        Person? UpdatedPersonData = await _entryService
+            .CreatePerson(TeamId, TeamPassword, PersonData.Name, PersonData.FirstName, PersonData.Year);
+
+        _snackbar.Add($"Created Person. Person={UpdatedPersonData}", Severity.Success);
+        MudDialog.Close(DialogResult.Ok(PersonData.Id));
+    }
+}

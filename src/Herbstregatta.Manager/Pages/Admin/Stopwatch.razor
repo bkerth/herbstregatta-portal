@@ -1,0 +1,85 @@
+﻿@page "/stopwatch"
+@inject IRaceRegistrationService _entryService
+@inject IBackupService _backupService
+@inject IDialogService _dialogService
+
+@inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
+@inject Microsoft.JSInterop.IJSRuntime _jsRuntime
+
+<MudContainer Class="mt-16">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@Resource.Title</MudText>
+    <MudText Typo="Typo.h5" Align="Align.Center">Zeitnahme</MudText>
+
+    <MudAlert Severity="Severity.Warning" AlertTextPosition="AlertTextPosition.Center" Class="mt-4">@Resource.AdministrationWrongAreaText &#128521;</MudAlert>
+
+    <MudCardContent>
+        <MudGrid>
+            @if (_errors.Count != 0)
+            {
+                <MudItem xs="12">
+                    <MudList>
+                        @foreach (var err in _errors)
+                        {
+                            <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                        }
+                    </MudList>
+                </MudItem>
+            }
+
+            <MudItem xs="12" Class="d-flex align-center gap-4">
+                <MudTextField Label="@Resource.AdminToken" HelperText="@Resource.AdminTokenHelperText"
+                            @bind-Value="_token" InputType="InputType.Password" Disabled="@_loading" />
+
+                <MudButton Variant="Variant.Outlined"
+                        Color="Color.Secondary"
+                        StartIcon="@Icons.Material.Filled.NavigateNext"
+                        Disabled="@_loading"
+                        OnClick="LoadDataAsManagement">
+                    @Resource.LoadTable
+                </MudButton>
+            </MudItem>
+
+            <MudItem xs="12">
+                <Herbstregatta.Manager.Shared.Scheduling.AssignedRacesTable @ref="_ref" ShowAdminOption="false" ShowStopwatchOption="true" />
+            </MudItem>
+        </MudGrid>
+
+    </MudCardContent>
+
+</MudContainer>
+
+@code {
+    private Herbstregatta.Manager.Shared.Scheduling.AssignedRacesTable _ref;
+
+    private bool _loading = true;
+    private string _token = string.Empty;
+
+    private List<string> _errors = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _loading = false;
+    }
+
+    private async Task LoadDataAsManagement()
+    {
+        _loading = true;
+
+        await Task.Delay(1);
+
+        if (string.IsNullOrWhiteSpace(_token))
+        {
+            _errors.Add("Please enter the token for management!");
+            return;
+        }
+
+        await _ref.LoadData(_token);
+
+        await Task.Delay(1);
+
+        _loading = false;
+    }
+}

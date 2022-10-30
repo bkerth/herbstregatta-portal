@@ -1,0 +1,128 @@
+@inject IRaceRegistrationService _entryService
+@inject IBackupService _backupService
+@inject IDialogService _dialogService
+
+@inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
+@inject Microsoft.JSInterop.IJSRuntime _jsRuntime
+
+<MudCardContent>
+    <MudGrid>
+        @if (_errors.Count != 0)
+        {
+            <MudItem xs="12">
+                <MudList>
+                    @foreach (var err in _errors)
+                    {
+                        <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                    }
+                </MudList>
+            </MudItem>
+        }
+        @if (SelectedTeam == null)
+        {
+            <MudItem xs="12" Class="d-flex align-center gap-4">
+                <MudTextField Label="@Resource.AdminToken" HelperText="@Resource.AdminTokenHelperText"
+                        @bind-Value="_token" InputType="InputType.Password" Disabled="@_loading" />
+
+                <MudButton Variant="Variant.Outlined"
+                    Color="Color.Secondary"
+                    StartIcon="@Icons.Material.Filled.NavigateNext"
+                    Disabled="@_loading"
+                    OnClick="LoadDataAsManagement">
+                        @Resource.LoadTable
+                </MudButton>
+            </MudItem>
+            <MudItem xs="6" Style="display: flex; justify-content: flex-end; align-items: center;">
+                <MudText Typo="Typo.caption">
+                    Time
+                </MudText>
+                <MudCheckBox @bind-Checked="_showStopwatchOption" Color="Color.Secondary" />
+            </MudItem>
+            <MudItem xs="6" Style="display: flex; justify-content: flex-end; align-items: center;">
+                <MudText Typo="Typo.caption">
+                    Admin
+                </MudText>
+                <MudCheckBox @bind-Checked="_showAdminOption" Color="Color.Secondary" />
+            </MudItem>
+        }
+        else
+        {
+            <MudItem xs="12" Class="d-flex align-center gap-4">
+                <MudButton Variant="Variant.Outlined"
+                    Color="Color.Secondary"
+                    StartIcon="@Icons.Material.Filled.NavigateNext"
+                    Disabled="@_loading"
+                    OnClick="LoadDataAsTeam">
+                        @Resource.LoadTable
+                </MudButton>
+            </MudItem>
+        }
+
+        <MudItem xs="12">
+            <AssignedRacesTable @ref="_ref" ShowAdminOption="_showAdminOption" ShowStopwatchOption="_showStopwatchOption" />
+        </MudItem>
+    </MudGrid>        
+   
+</MudCardContent>
+
+
+@code {
+    [Parameter]
+    public SelectedTeamData? SelectedTeam { get; set; }
+
+    private AssignedRacesTable _ref;
+
+    private bool _loading = true;
+    private string _token = string.Empty;
+
+    private bool _showAdminOption = false;
+    private bool _showStopwatchOption = false;
+
+    private List<string> _errors = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (SelectedTeam != null && _ref != null)
+        {            
+            _loading = true;
+            await _ref.LoadData(SelectedTeam?.PlainPassword);
+        }
+
+        _loading = false;
+    }
+
+    private async Task LoadDataAsTeam()
+    {
+        _loading = true;
+
+        await Task.Delay(1);
+
+        await _ref.LoadData(SelectedTeam?.PlainPassword);
+
+        await Task.Delay(1);
+
+        _loading = false;
+    }
+
+    private async Task LoadDataAsManagement()
+    {
+        _loading = true;
+
+        await Task.Delay(1);
+
+        if (string.IsNullOrWhiteSpace(_token))
+        {
+            _errors.Add("Please enter the token for management!");
+            return;
+        }
+
+        await _ref.LoadData(_token);
+
+        await Task.Delay(1);
+
+        _loading = false;
+    }
+}

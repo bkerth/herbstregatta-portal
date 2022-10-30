@@ -1,0 +1,52 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager _NavigationManager
+
+<MudThemeProvider Theme="MyCustomTheme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudSpacer />       
+        <MudIconButton Icon="@Icons.Material.Filled.Rowing" Color="Color.Inherit"  Link="https://xn--tbinger-herbstregatta-8hc.de/" Target="_blank" />
+        <MudIconButton Icon="@Icons.Custom.Brands.GitHub" Color="Color.Inherit" Link="https://github.com/bkerth" Target="_blank" />
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+    <MudContainer Class="d-flex justify-center pa-4">
+        <MudText Typo="Typo.caption" Align="Align.Center">© 2022 Kerth | <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="OnImprint">@Resource.Imprint</MudButton> | <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="OnDataProtection">@Resource.DataProtection</MudButton></MudText>
+    </MudContainer>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = false;
+
+    MudTheme MyCustomTheme = new MudTheme()
+    {
+        Palette = new Palette()
+        {
+            Primary = Colors.Red.Default,
+            AppbarBackground = Colors.LightBlue.Default,
+        }
+    };
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    void OnImprint()
+    {
+        _NavigationManager.NavigateTo("imprint");
+    }
+
+    void OnDataProtection()
+    {
+        _NavigationManager.NavigateTo("dataprotection");
+    }
+}

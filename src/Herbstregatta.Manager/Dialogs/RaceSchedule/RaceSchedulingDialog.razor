@@ -1,0 +1,253 @@
+﻿@inject IRaceSchedulingService _RaceSchhedulingService
+@inject ISnackbar _snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudGrid>
+            @if (errors.Count != 0)
+            {
+                <MudItem xs="12">
+                    <MudList>
+                        @foreach (var err in errors)
+                        {
+                            <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                        }
+                    </MudList>
+                </MudItem>
+            }
+
+            @if (ScheduledRace.AnnouncedRace != null)
+            {
+                <MudItem xs="4">
+                    <MudTextField @bind-Value="ScheduledRace.AnnouncedRace.Number" Label="@Resource.RaceNumber" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField @bind-Value="ScheduledRace.AnnouncedRace.Name" Label="@Resource.RaceName" ReadOnly="true" />
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField @bind-Value="ScheduledRace.AnnouncedRace.Description" Label="@Resource.Description" ReadOnly="true" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="ScheduledRace.AnnouncedRace.Category" Label="@Resource.Category" ReadOnly="true" />
+                </MudItem>
+            }
+
+            <MudItem xs="12">
+                <MudTable Hover="true" Breakpoint="Breakpoint.Sm" Dense="true" 
+                        SortLabel="@Resource.SortByLabel"
+                        T="AssignedRace" Items="@ScheduledRace.AssignedRaces">
+
+                    <HeaderContent>
+                        <MudTh>@Resource.RaceName</MudTh>
+                        <MudTh>@Resource.RaceNumber</MudTh>
+                        <MudTh>@Resource.RaceName</MudTh>
+                        <MudTh>@Resource.Club</MudTh>
+                        <MudTh>@Resource.ListOfAthletes</MudTh>
+
+                        @if (!IsReadonly)
+                        {
+                            <MudTh>@Resource.Swap</MudTh>
+                            <MudTh>@Resource.Delete</MudTh>
+                        }
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        
+                        <MudTd DataLabel="@Resource.RaceTrack">
+                            @context.Track
+                        </MudTd>
+                        <MudTd DataLabel="@Resource.RaceNumber">
+                            @context.RegisteredRace.AnnouncedRace.Number
+                        </MudTd>
+                        <MudTd DataLabel="@Resource.RaceName">
+                            @context.RegisteredRace.AnnouncedRace.Name
+                        </MudTd>                    
+                        <MudTd DataLabel="@Resource.Club">
+                            @context.RegisteredRace.Team.Name
+                        </MudTd>
+                        <MudTd DataLabel="@Resource.ListOfAthletes">
+                            @context.RegisteredRace.Athletes.ToAthletesString()
+                        </MudTd>
+
+                        @if (!IsReadonly)
+                        {
+                            <MudTd DataLabel="@Resource.Swap">
+                                <div class="d-flex flex-row">
+                                    <MudIconButton Icon="@Icons.Material.Filled.ArrowUpward" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="() => MoveUp(context)" />
+                                    <MudIconButton Icon="@Icons.Material.Filled.ArrowDownward" Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small" OnClick="() => MoveDown(context)" />
+                                </div>
+                            </MudTd>
+
+                            <MudTd Style="text-align:center;">
+                                <MudIconButton OnClick="() => RemoveSelectedRace(context)"
+                                    Icon="@Icons.Material.Filled.Remove"
+                                    Color="Color.Warning"
+                                    Size="Size.Medium" />
+                            </MudTd>                       
+                        }
+
+                    </RowTemplate>
+                </MudTable>
+            </MudItem>
+                        
+            <MudItem xs="6">
+                <MudDatePicker Label="@Resource.Date" @bind-Date="_selectedDate" ReadOnly="IsReadonly"/>
+            </MudItem>
+            <MudItem xs="6">
+                <MudTimePicker Label="@Resource.StartTime" AmPm="false" @bind-Time="_selectedTime" ReadOnly="IsReadonly" />
+            </MudItem>
+                        
+            @if (!IsReadonly)
+            {
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="token" Label="@Resource.AdminToken" HelperText="@Resource.AdminTokenHelperText" InputType="InputType.Password" />
+                </MudItem>
+            }
+        </MudGrid>
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        @if (!IsReadonly)
+        {
+            <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+        }
+    </DialogActions>
+
+</MudDialog>
+
+<MudText>
+    
+</MudText>
+
+@code {
+    [CascadingParameter]
+    public MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public ScheduledRace ScheduledRace { get; set; } = new();
+
+    [Parameter]
+    public bool IsReadonly { get; set; } = false;
+
+    private string token = string.Empty;
+    private List<string> errors = new List<string>();
+
+    private DateTime? _selectedDate;
+    private TimeSpan? _selectedTime;
+
+    protected override Task OnInitializedAsync()
+    {
+        _selectedDate = ScheduledRace?.PlannedStartTime.Date;
+        _selectedTime = ScheduledRace?.PlannedStartTime.TimeOfDay;
+
+        return base.OnInitializedAsync();
+    }
+
+    private void RemoveSelectedRace(AssignedRace entry)
+    {
+        ScheduledRace?.AssignedRaces.Remove(entry);
+    }
+
+    private bool Validate()
+    {
+        errors.Clear();
+
+        if (ScheduledRace == null)
+        {
+            return false;
+        }
+
+        if (ScheduledRace.AssignedRaces == null || !ScheduledRace.AssignedRaces.Any())
+        {
+            errors.Add("No races selected!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void MoveUp(AssignedRace assignedRace)
+    {
+        if (ScheduledRace == null)
+        {
+            return;
+        }
+
+        var list = ScheduledRace.AssignedRaces.ToList();
+
+        var oldPosition = list.IndexOf(assignedRace);
+        var newPosition = oldPosition - 1;
+
+        if (newPosition < 0)
+        {
+            newPosition = list.Count - 1;
+        }
+
+        var entryAtNewPost = list.ElementAt(newPosition);
+        var tmp = entryAtNewPost.RegisteredRace;
+
+        entryAtNewPost.RegisteredRace = assignedRace.RegisteredRace;
+        assignedRace.RegisteredRace = tmp;
+
+        ScheduledRace.AssignedRaces = list;
+    }
+
+    private void MoveDown(AssignedRace assignedRace)
+    {
+        if (ScheduledRace == null)
+        {
+            return;
+        }
+
+        if (ScheduledRace == null) 
+        {
+            return;    
+        }
+
+        var list = ScheduledRace.AssignedRaces.ToList();
+
+        var oldPosition = list.IndexOf(assignedRace);
+        var newPosition = oldPosition + 1;
+
+        if (newPosition > list.Count - 1)
+        {
+            newPosition = 0;
+        }
+
+        var entryAtNewPost = list.ElementAt(newPosition);
+        var tmp = entryAtNewPost.RegisteredRace;
+
+        entryAtNewPost.RegisteredRace = assignedRace.RegisteredRace;
+        assignedRace.RegisteredRace = tmp;
+
+        ScheduledRace.AssignedRaces = list;
+    }
+
+    private async Task Submit() 
+    {
+        if (!Validate())
+        {
+            return;
+        }
+
+        DateTime plannedStartTime = ScheduledRace.PlannedStartTime;
+        if (_selectedDate.HasValue)
+        {
+            plannedStartTime = _selectedDate.Value.Date + plannedStartTime.TimeOfDay;
+        }
+        if (_selectedTime.HasValue)
+        {
+            plannedStartTime = plannedStartTime.Date + _selectedTime.Value;
+        }       
+
+        await _RaceSchhedulingService.CreateScheduledRace(token, 
+            ScheduledRace.AnnouncedRace, ScheduledRace.AssignedRaces, plannedStartTime);
+
+        MudDialog?.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog?.Cancel();
+
+}

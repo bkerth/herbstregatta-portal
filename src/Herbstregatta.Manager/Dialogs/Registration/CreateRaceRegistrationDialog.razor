@@ -1,0 +1,213 @@
+@inject IDialogService _dialogService
+@inject IRaceConfigurationService _raceService
+@inject IRaceRegistrationService _entryService
+@inject ISnackbar _snackbar
+
+<MudContainer Style="max-height: 70vh; overflow-y: auto;">
+    <MudDialog DisableSidePadding="true">
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Create" Class="mr-3 mb-n1"/>
+                @Resource.RegisterForRace
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                    @if (_errors.Count != 0) 
+                    {
+                    <MudItem xs="12">
+                        <MudList>
+                            @foreach (var err in _errors)
+                            {
+                                <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                            }
+                        </MudList>
+                    </MudItem>
+                    }
+
+                    <MudItem xs="4">
+                        <MudTextField @bind-Value="Race.Number" Label="@Resource.RaceNumber" ReadOnly="true" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudTextField @bind-Value="Race.Name" Label="@Resource.RaceName" ReadOnly="true" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudTextField @bind-Value="Race.Description" Label="@Resource.Description" ReadOnly="true"/>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="Race.Category" Label="@Resource.Category" ReadOnly="true"/>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTable Items="@_raceRegistration.Athletes" T="Athlete" Hover="true" Breakpoint="Breakpoint.Sm">
+                            <HeaderContent>
+                            <MudTh>@Resource.Position</MudTh>
+                            <MudTh>@Resource.ListOfAthletes</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="@Resource.Role">@context.Role</MudTd>
+                                <MudTd DataLabel="@Resource.Name">
+                                    @if (TeamData.SelectedTeam.Persons.Any())
+                                    {
+                                        <MudSelect PlaceHolder="@Resource.SelectTeamMember" @bind-Value="context.Person" T="Person" Label="@Resource.Athlete" AnchorOrigin="Origin.BottomCenter" Required="true">
+                                            @foreach (var person in TeamData.SelectedTeam.Persons)
+                                            {
+                                                <MudSelectItem Value="@person" />
+                                            }   
+                                        </MudSelect>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.caption" Class="ml-1 mt-5" Color="Color.Secondary" Align="Align.Center" GutterBottom="true">@Resource.NoPersonsInTeam</MudText>
+                                    }
+                                </MudTd>
+
+                            </RowTemplate>
+                        </MudTable>
+
+                    </MudItem>
+                    
+                    <MudItem xs="12">
+                        @if (TeamData.SelectedTeam.Persons.Any())
+                        {
+                            <MudSelect PlaceHolder="@Resource.SelectTeamMember" @bind-Value="_raceRegistration.Trainer" T="Person" Label="@Resource.Trainer" AnchorOrigin="Origin.BottomCenter" Required="true" >
+                                @foreach (var person in TeamData.SelectedTeam.Persons)
+                                {
+                                    <MudSelectItem Value="@person" />
+                                }   
+                            </MudSelect>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Class="ml-1 mt-5" Color="Color.Secondary" Align="Align.Center" GutterBottom="true">@Resource.NoPersonsInTeam</MudText>
+                        }
+                    </MudItem>
+
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="_raceRegistration.PhoneContact" Label="@Resource.Phone" Required="true"/>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudTextField @bind-Value="_raceRegistration.EmailContact" Label="@Resource.Email" Required="true"/>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="_raceRegistration.BoatName" Label="@Resource.BoatName" />
+                    </MudItem>
+
+            </MudGrid>
+        
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">@Resource.Cancel</MudButton>
+            <MudButton OnClick="SaveChanges" Color="Color.Primary">@Resource.Create</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudContainer>
+
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter]
+    public AnnouncedRace Race { get; set; } = default!;
+
+    [Parameter]
+    public SelectedTeamData TeamData { get; set; } = default!;
+
+    public RegisteredRace _raceRegistration { get; set; } = new RegisteredRace();
+
+    private List<string> _errors = new List<string>();
+
+
+    protected override void OnInitialized()
+    {
+        var countOfAthletes = Race.CountOfAthletes;
+        if (Race.HasCox)
+        {
+            ++countOfAthletes;
+        }
+
+        if (TeamData != null)
+        {
+            _raceRegistration.PhoneContact = TeamData.SelectedTeam.DefaultPhone;
+            _raceRegistration.EmailContact = TeamData.SelectedTeam.DefaultEmail;
+        }
+
+        _raceRegistration.Athletes = new List<Athlete>(countOfAthletes);
+
+        for (int id = 0; id < countOfAthletes; id++)
+        {
+            var role = string.Empty;
+            if (Race.HasCox && id == 0)
+            {
+                role = "Cox";
+            }
+            else
+            {
+                role = $"Pos. {countOfAthletes - id}";
+            }
+
+            _raceRegistration.Athletes.Add(new Athlete() { Role = role });
+        }
+
+        base.OnInitialized();
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private bool ValidateInputs()
+    {
+        bool success = true;
+
+        if (_raceRegistration.Trainer is null || _raceRegistration.Trainer.Equals(Person.NoName(TeamData.SelectedTeam)))
+        {
+            _errors.Add("A responisble person must be assigned!");
+            success = false;
+        }
+
+        if (string.IsNullOrWhiteSpace(_raceRegistration.PhoneContact))
+        {
+            _errors.Add("A phone number must be set!");
+            success = false;
+        }
+
+        if (string.IsNullOrWhiteSpace(_raceRegistration.EmailContact))
+        {
+            _errors.Add("A email must be set!");
+            success = false;
+        }
+
+        return success;
+    }
+
+    private async Task SaveChanges()
+    {
+        if (!ValidateInputs() || TeamData is null || _raceRegistration is null)
+        {
+            return;
+        }
+
+        RegisteredRace? entry = await _entryService.CreateRaceEntry(
+            TeamData.SelectedTeam.Id, 
+            TeamData.PlainPassword, 
+            Race.Number, 
+            _raceRegistration.Trainer, 
+            _raceRegistration.PhoneContact, 
+            _raceRegistration.EmailContact, 
+            _raceRegistration.Athletes);
+
+        if (entry is null)
+        {
+            _snackbar.Add($"Failed to create Entry.", Severity.Error);
+            return;
+        }
+
+        _snackbar.Add($"Created entry.", Severity.Success);
+        MudDialog?.Close(DialogResult.Ok(entry.Id));
+    }
+}

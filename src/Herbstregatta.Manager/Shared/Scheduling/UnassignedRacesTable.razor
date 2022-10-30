@@ -1,0 +1,124 @@
+﻿@using Herbstregatta.Manager.Dialogs.Registration
+@inject ISnackbar _snackbar
+@inject IDialogService _dialogService
+
+@inject IRaceRegistrationService _entryService
+@inject IRaceSchedulingService _raceSchedulingService
+
+<MudTable Hover="true" Breakpoint="Breakpoint.Sm" Dense="true" SortLabel="@Resource.SortByLabel"
+        T="RegisteredRace" Items="@_unassignedRaceEntries" FixedHeader="true"
+        Loading="@_isLoading" LoadingProgressColor="Color.Info"
+        MultiSelection="true" SelectedItemsChanged="OnSelectedItemsChanged" SelectedItems="_selectedItems"
+        GroupBy="@_raceEntryGroupDefinition" GroupHeaderStyle="background-color:var(--mud-palette-background-grey)" GroupFooterClass="mb-4">
+
+<NoRecordsContent>
+    <MudText>No records available</MudText>
+</NoRecordsContent>
+<LoadingContent>
+    <MudText>Loading...</MudText>
+</LoadingContent>
+
+<HeaderContent>
+    <MudTh Style="text-align:center;">@Resource.RaceNumber</MudTh>
+    <MudTh>@Resource.RaceName</MudTh>
+    <MudTh>@Resource.Club</MudTh>
+    <MudTh>@Resource.Boat</MudTh>
+    <MudTh>@Resource.Details</MudTh>
+</HeaderContent>
+
+<ColGroup>
+    <col />  @*CheckBoxForSelection*@
+    <col />  @*RaceNumber*@
+    <col style="width: 15%;" />  @*RaceName*@
+    <col style="width: 15%;" />  @*Club*@
+    <col />  @*BoatName*@
+    <col />  @*Details*@
+</ColGroup>
+
+<GroupHeaderTemplate>
+    <MudTh Class="mud-table-cell-custom-group" colspan="9">@($"{context.GroupName}: {context.Key}")</MudTh>
+    </GroupHeaderTemplate>
+    <RowTemplate>
+
+        <MudTd DataLabel="@Resource.RaceNumber" Style="text-align:center;">@context.AnnouncedRace.Number</MudTd>
+        <MudTd DataLabel="@Resource.RaceName">@context.AnnouncedRace.Name</MudTd>
+        <MudTd DataLabel="@Resource.Club">@context.Team.Name</MudTd>
+        <MudTd DataLabel="@Resource.BoatName">@context.BoatName</MudTd>
+        <MudTd Style="text-align:center;">
+            <MudIconButton 
+            Color="Color.Info"
+            Icon="@Icons.Material.Filled.Info"
+            Size="Size.Medium" 
+            OnClick="() => OpenDetails(context)" />
+        </MudTd>
+    </RowTemplate>
+    <GroupFooterTemplate>
+        <MudTh Class="mud-table-cell-custom-group mud-table-cell-custom-group-footer" colspan="9">@($"{Resource.CountOfRaceEntries}: {context.Items.Count()}")</MudTh>
+    </GroupFooterTemplate>
+</MudTable>
+    @code {
+
+
+
+
+    [Parameter]
+    public EventCallback<HashSet<RegisteredRace>> SelectedRaceEntries { get; set; }
+
+    private bool _isLoading = false;
+    private string _token = string.Empty;
+    private ICollection<RegisteredRace> _unassignedRaceEntries { get; set; } = new List<RegisteredRace>();
+    private HashSet<RegisteredRace> _selectedItems = new HashSet<RegisteredRace>();
+
+    private TableGroupDefinition<RegisteredRace> _raceEntryGroupDefinition = new()
+        {
+            GroupName = Resource.Race,
+            Indentation = false,
+            Expandable = true,
+            Selector = (e) => e.AnnouncedRace.Name
+        };
+
+
+    public async Task LoadData(string token)
+    {
+        _token = token;
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return;
+        }
+
+        _isLoading = true;
+        StateHasChanged();
+
+        var stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Restart();
+
+        _unassignedRaceEntries = await _raceSchedulingService.GetUnassignedRaceEntries(token);
+
+        _snackbar.Add($"Duration loading scheduled race entries: {stopwatch.Elapsed.TotalSeconds} sec");
+
+        _isLoading = false;
+        _selectedItems = new HashSet<RegisteredRace>();
+
+        StateHasChanged();
+    }
+
+
+    private void OnSelectedItemsChanged(HashSet<RegisteredRace> elements)
+    {
+        SelectedRaceEntries.InvokeAsync(elements);
+    }
+
+    private async Task OpenDetails(RegisteredRace raceEntry)
+    {
+        var entry = await _entryService.GetRaceEntry(_token, raceEntry.Id);
+
+        var parameters = new DialogParameters
+        {
+                [nameof(EditRaceRegistrationDialog.RegisteredRace)] = entry
+        };
+
+        var dialog = _dialogService.Show<EditRaceRegistrationDialog>(Resource.RaceScheduling, parameters, GlobalDialogOptions.FullWidthDialogOptions());
+        var result = await dialog.Result;
+    }
+}

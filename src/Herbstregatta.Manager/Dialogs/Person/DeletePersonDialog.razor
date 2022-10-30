@@ -1,0 +1,83 @@
+@inject IRaceRegistrationService _raceEntryService
+@inject ISnackbar _snackbar
+
+<MudDialog DisableSidePadding="true">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Create" Class="mr-3 mb-n1"/>
+            Delete a person
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudCard>
+            <MudCardContent>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="PersonData.FirstName" Label="First Name" ReadOnly=true/>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="PersonData.Name" Label="Last Name" ReadOnly=true/>
+                </MudItem>
+                <MudItem xs="2">
+                    <MudTextField @bind-Value="PersonData.Year" Label="Year of Birth" ReadOnly=true/>
+                </MudItem>
+            </MudCardContent>
+        </MudCard>
+        @if (Entries.Count != 0)
+        {
+            <MudText Typo="Typo.h4">
+                Person kann nicht gelöscht werden, da sie in folgenden Meldungend vorhanden ist:
+            </MudText>
+            @foreach (var entry_data in Entries)
+            {
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="entry_data.AnnouncedRace.Name" Label="Rennen" ReadOnly=true/>
+                </MudItem>
+            }
+        }
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        @if(Entries.Count == 0)
+        {
+            <MudButton OnClick="Delete" Color="Color.Primary">Delete</MudButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public Person PersonData { get; set; } = new Person();
+    [Parameter] 
+    public int TeamId { get; set; }
+    [Parameter] 
+    public string TeamPassword { get; set; }
+
+    private IReadOnlyCollection<RegisteredRace> Entries { get; set; } = new List<RegisteredRace>();
+
+    private List<string> errors = new List<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        var all_entries = await _raceEntryService.GetTeamRaceEntries(TeamId, TeamPassword);
+        Entries = all_entries.Where(entry => entry.Athletes.ToList().Exists(athlete => athlete.Person.Id.Equals(PersonData.Id))).ToList();
+    }
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+
+    private Task Delete()
+    {
+        //TODO
+        _snackbar.Add("Noch nicht implementiert!", Severity.Error);
+        MudDialog?.Close(DialogResult.Cancel());
+        return Task.CompletedTask;
+    }
+}

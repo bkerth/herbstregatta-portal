@@ -1,0 +1,136 @@
+﻿@using Herbstregatta.Manager.Dialogs.Person
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+@inject IRaceRegistrationService _entryService
+
+<MudCardContent>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Default" Indeterminate="true" Class="my-7" />
+    }
+    else
+    {
+        <MudGrid Class="mt-8">
+            @if (_teamPersons.Any())
+            {
+                <MudItem xs="12">
+                    <MudTable Items="@_teamPersons" Hover="true" SortLabel="@Resource.SortByLabel">
+                        <HeaderContent>
+                            <MudTh Style="text-align:center;">
+                                <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<Person, object>(x=>x.Name)">@Resource.Name</MudTableSortLabel>
+                            </MudTh>
+                            <MudTh>
+                                <MudTableSortLabel SortBy="new Func<Person, object>(x=>x.FirstName)">@Resource.FirstName</MudTableSortLabel>
+                            </MudTh>
+                            <MudTh>
+                                <MudTableSortLabel SortBy="new Func<Person, object>(x=>x.Year)">@Resource.BirthYear</MudTableSortLabel>
+                            </MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="@Resource.Name" Style="text-align:center;">@context.Name</MudTd>
+                            <MudTd DataLabel="@Resource.FirstName">@context.FirstName</MudTd>
+                            <MudTd DataLabel="@Resource.BirthYear">@context.Year</MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudTablePager HidePageNumber="true" HideRowsPerPage="true" HorizontalAlignment="HorizontalAlignment.Center" />
+                        </PagerContent>
+                    </MudTable>
+                </MudItem>
+            }
+            else
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Class="ml-1 mt-5" Color="Color.Secondary" Align="Align.Center" GutterBottom="true">@Resource.NoPersonsInTeam</MudText>
+                </MudItem>
+            }
+
+            <MudItem xs="12">
+                <MudButton Variant="Variant.Outlined"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="CreatePerson">
+                    @Resource.AddPerson
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    }
+</MudCardContent>
+
+@code {
+    private bool _loading = true;
+
+    [Parameter]
+    public EventCallback<SelectedTeamData> OnSelectedTeamChanged { get; set; }
+
+    [Parameter]
+    public SelectedTeamData? SelectedTeam { get; set; }
+
+    private string _teamName = string.Empty;
+
+    private DialogOptions _DialogOptions = new DialogOptions()
+    { 
+        MaxWidth = MaxWidth.Medium, 
+        FullWidth = true 
+    };
+
+    private ICollection<Person> _teamPersons { get; set; } = new List<Person>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+        if (SelectedTeam != null)
+        {
+            _teamName = SelectedTeam.SelectedTeam.Name;
+
+            await UpdateTeamPersons();
+        }
+
+        _loading = false;
+    }
+
+    private async Task UpdateTeamPersons()
+    {
+        if (SelectedTeam is null)
+        {
+            return;
+        }
+
+        _teamPersons = await _entryService.GetTeamPersons(SelectedTeam.SelectedTeam.Id, SelectedTeam.PlainPassword);
+
+        SelectedTeam.SelectedTeam.Persons = _teamPersons;
+        await OnSelectedTeamChanged.InvokeAsync(SelectedTeam);
+    }
+
+    private async Task CreatePerson()
+    {
+        if (SelectedTeam is null)
+        {
+            _snackbar.Add(Resource.NoTeamSelectedMessage, Severity.Error);
+            return;
+        }
+
+        var person = new Person();
+
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var parameters = new DialogParameters 
+        {
+            ["PersonData"] = person, 
+            ["TeamId"] = SelectedTeam.SelectedTeam.Id,
+            ["TeamPassword"] = SelectedTeam.PlainPassword
+        };
+
+        var dialog = _dialogService.Show<CreatePersonDialog>(Resource.CreatePerson, parameters, _DialogOptions);
+        var result = await dialog.Result;
+
+        if (result.Cancelled)
+        {
+            _snackbar.Add(Resource.CreatePersonAbortMessage, Severity.Error);
+            return;
+        }
+
+        _snackbar.Add(Resource.CreateTeamSuccessMessage, Severity.Success);
+
+        await UpdateTeamPersons();
+    }
+}

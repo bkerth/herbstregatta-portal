@@ -1,0 +1,144 @@
+﻿@using Herbstregatta.Manager.Dialogs.Team
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+@inject IRaceRegistrationService _entryService
+
+<MudCardContent>
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Default" Indeterminate="true" Class="my-7" />
+    }
+    else
+    {
+        <MudGrid Class="mt-8">
+
+            @if (_configuredTeams.Any())
+            {
+                <!-- Team selection or creation -->
+                <MudItem xs="12" Class="d-flex align-center gap-4">
+                    <MudSelect Label="@Resource.Club" T='Team' @bind-Value="_selectedTeam" HelperText=@Resource.TeamSelectionHelperText>
+                        @foreach (var team in _configuredTeams)
+                        {
+                            <MudSelectItem Value="@team">@team.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                    @if (!(_selectedTeam is null))
+                    {
+                        <MudButton Variant="Variant.Outlined"
+                                Color="Color.Secondary"
+                                StartIcon="@Icons.Material.Filled.NavigateNext"
+                                OnClick="GoToNextStep">
+                            @Resource.Login
+                        </MudButton>
+                    }
+                </MudItem>
+            }
+            else
+            {
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Align="Align.Center" GutterBottom="true">@Resource.NoTeamsConfigured</MudText>
+                </MudItem>
+            }
+
+            <MudItem xs="12" Class="d-flex flex-column justify-center">
+                <MudText Align="Align.Center">Ist dein Team noch nicht registriert?</MudText>
+                <MudButton Variant="Variant.Text"
+                        Color="Color.Primary"
+                        StartIcon="@Icons.Material.Filled.Add"
+                        OnClick="CreateTeam">
+                    @Resource.CreateTeam
+                </MudButton>
+            </MudItem>
+
+        </MudGrid>
+    }
+</MudCardContent>
+
+@code {
+    [Parameter] 
+    public EventCallback<SelectedTeamData> OnSelectedTeamChanged { get; set; }
+
+    private bool _loading = true;
+
+    private ICollection<Team> _configuredTeams { get; set; } = new List<Team>();
+
+    private Team? _selectedTeam { get; set; } = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _configuredTeams = await _entryService.GetTeams();
+        _loading = false;
+
+        return;
+    }
+
+    private async Task CreateTeam()
+    {
+        var parameters = new DialogParameters { };
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = _dialogService.Show<CreateTeamDialog>(Resource.CreateTeam, parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Cancelled)
+        {
+            _snackbar.Add(Resource.CreateTeamAbortMessage, Severity.Error);
+        }
+        else
+        {
+            _snackbar.Add(Resource.CreateTeamSuccessMessage, Severity.Info);
+        }
+
+        _configuredTeams = await _entryService.GetTeams();
+    }
+
+    private async Task GoToNextStep()
+    {
+        @if(_selectedTeam == null)
+        {
+            _snackbar.Add(Resource.NoTeamSelectedMessage, Severity.Error);
+            return;
+        }
+
+        var parameters = new DialogParameters { ["SelectedTeam"] = _selectedTeam };
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+
+        var dialog = _dialogService.Show<LoginDialog>(Resource.Login, parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Cancelled)
+        {
+            _snackbar.Add(Resource.LoginAbortMessage, Severity.Error);
+            return;
+        }
+
+        if (!(result.Data is string password))
+        {
+            _snackbar.Add(Resource.LoginFailedMessage, Severity.Error);
+            return;
+        }
+
+        var selectedTeam = new SelectedTeamData(_selectedTeam, password);
+
+        await UpdateTeamWithPersons(_selectedTeam.Id, selectedTeam);
+    }
+
+    private async Task UpdateTeamWithPersons(int teamId, SelectedTeamData selectedTeam)
+    {
+        var teams = await _entryService.GetTeamsWithTeamPersons();
+
+        if (teams != null)
+        {
+            var team = teams.FirstOrDefault(t => t.Id.Equals(teamId));
+            if (team != null)
+            {
+                selectedTeam.SelectedTeam = team;
+            }
+        }
+
+        _snackbar.Add(Resource.LoginSuccessMessage, Severity.Success);
+        await OnSelectedTeamChanged.InvokeAsync(selectedTeam);
+    }
+}

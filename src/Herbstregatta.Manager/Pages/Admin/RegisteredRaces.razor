@@ -1,0 +1,19 @@
+﻿@page "/administration/entries"
+@inject IRaceConfigurationService _raceConfigurationService
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+
+<MudContainer Class="mt-16">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@Resource.Title</MudText>
+    <MudText Typo="Typo.h5" Align="Align.Center">@Resource.Administration</MudText>
+    <MudText Typo="Typo.h5" Align="Align.Center">@Resource.RegisteredRaces</MudText>
+    
+    <MudAlert Severity="Severity.Warning" AlertTextPosition="AlertTextPosition.Center" Class="mt-4">@Resource.AdministrationWrongAreaText &#128521;       
+    </MudAlert>
+
+    <Herbstregatta.Manager.Shared.Registration.RegisteredRaces />
+</MudContainer>
+
+@code {
+
+}

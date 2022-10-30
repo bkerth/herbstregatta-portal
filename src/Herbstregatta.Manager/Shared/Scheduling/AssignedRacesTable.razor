@@ -1,0 +1,244 @@
+﻿@using Herbstregatta.Manager.Dialogs.RaceSchedule
+@using Herbstregatta.Manager.Dialogs.Stopwatch
+@inject NavigationManager _navigationManager;
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+@inject IRaceSchedulingService _raceSchedulingService
+
+<MudTable Hover="true" Breakpoint="Breakpoint.Sm" Dense="true" SortLabel="@Resource.SortByLabel"
+        FixedHeader="true"
+        T="ScheduledRace" Items="@_scheduledRaces" 
+        Loading="@_isLoading" LoadingProgressColor="Color.Info">
+
+    <NoRecordsContent>
+        <MudText>No records available</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Loading...</MudText>
+    </LoadingContent>
+
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ScheduledRace, object>(x=>x.PlannedStartTime)">
+                @Resource.StartTime
+            </MudTableSortLabel>
+        </MudTh>
+
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<ScheduledRace, object>(x=>x.RunNumber)">
+                <MudTh>@Resource.RunNumber</MudTh>
+            </MudTableSortLabel>
+        </MudTh>
+
+        <MudTh>@Resource.RaceNumber</MudTh>
+        <MudTh>@Resource.RaceName</MudTh>
+        <MudTh>Beendet</MudTh>
+        
+        @if (!ShowStopwatchOption)
+        {
+            <MudTh>@Resource.RaceTrack 1</MudTh>
+            <MudTh>@Resource.RaceTrack 2</MudTh>
+            <MudTh>@Resource.RaceTrack 3</MudTh>
+        }
+
+        <MudTh>@Resource.Details</MudTh>
+
+        @if (ShowStopwatchOption)
+        {
+            <MudTh>@Resource.Stopwatch</MudTh>
+        }
+
+        @if (ShowAdminOption)
+        {
+            <MudTh>@Resource.Edit</MudTh>
+            <MudTh>@Resource.Delete</MudTh>
+        }
+
+    </HeaderContent>
+
+    <RowTemplate>
+        <MudTd DataLabel="@Resource.StartTime">@context.PlannedStartTime</MudTd>
+        <MudTd DataLabel="@Resource.RunNumber">@context.RunNumber</MudTd>
+
+        <MudTd DataLabel="@Resource.RaceNumber">@context.AnnouncedRace.Number</MudTd>
+        <MudTd DataLabel="@Resource.RaceName">@context.AnnouncedRace.Name</MudTd>
+        <MudTd DataLabel="Beendet">
+            <MudIcon 
+                Icon="@ToFinishedIcon(@context.IsFinished)" 
+                Color="@ToFinishedColor(@context.IsFinished)"
+                Size="Size.Medium"/>
+            
+        </MudTd>
+        
+        @if (!ShowStopwatchOption)
+        {
+            @foreach (var assignedRace in context.AssignedRaces)
+            {
+                <MudTd DataLabel="@assignedRace.Track">@assignedRace.RegisteredRace.ToScheduledTeamInfo()</MudTd>
+            }
+
+            @if (context.AssignedRaces.Count == 2)
+            {
+                <MudTd DataLabel="@Resource.RaceTrack">-</MudTd>
+            }
+            else if (context.AssignedRaces.Count == 1)
+            {
+                <MudTd DataLabel="@Resource.RaceTrack">-</MudTd>
+                <MudTd DataLabel="@Resource.RaceTrack">-</MudTd>
+            }
+            else if (context.AssignedRaces.Count == 0)
+            {
+                <MudTd DataLabel="@Resource.RaceTrack">-</MudTd>
+                <MudTd DataLabel="@Resource.RaceTrack">-</MudTd>
+                <MudTd DataLabel="@Resource.RaceTrack">-</MudTd>
+            }
+        }
+        
+        <MudTd Style="text-align:center;">
+            <MudIconButton 
+            Color="Color.Info"
+            Icon="@Icons.Material.Filled.Info"
+            Size="Size.Medium" 
+            OnClick="() => OpenScheduledRace(context)" />
+        </MudTd>
+
+        @if (ShowStopwatchOption)
+        {
+            <MudTd Style="text-align:center;">
+                <MudIconButton Color="Color.Info"
+                           Icon="@Icons.Material.Filled.Timer"
+                           Size="Size.Medium"
+                           OnClick="() => OpenStopwatch(context)" />
+            </MudTd>
+        }
+
+        @if (ShowAdminOption)
+        {
+            <MudTd Style="text-align:center;">
+                <MudIconButton 
+                    Color="Color.Info"
+                    Icon="@Icons.Material.Filled.Edit"
+                    Size="Size.Medium" 
+                    OnClick="() => EditScheduledRace(context)" />
+            </MudTd>
+            <MudTd Style="text-align:center;">
+                <MudIconButton 
+                    Color="Color.Info"
+                    Icon="@Icons.Material.Filled.Delete"
+                    Size="Size.Medium" 
+                    OnClick="() => DeleteScheduledRace(context)" />
+            </MudTd>
+        }        
+    </RowTemplate>
+
+    <PagerContent>
+        <MudTablePager HidePageNumber="true" HideRowsPerPage="false" HorizontalAlignment="HorizontalAlignment.Center" />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Parameter]
+    public bool ShowStopwatchOption { get; set; } = false;
+
+    [Parameter]
+    public bool ShowAdminOption { get; set; } = false;
+
+    private bool _isLoading = false;
+    private string _token = string.Empty;
+
+    private ICollection<ScheduledRace> _scheduledRaces { get; set; } = new List<ScheduledRace>();
+
+    public async Task LoadData(string token)
+    {
+        _token = token;
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return;
+        }
+
+        _isLoading = true;
+        StateHasChanged();
+
+        _scheduledRaces = await _raceSchedulingService.GetScheduledRaces(token);
+
+        _isLoading = false;
+        StateHasChanged();
+    }
+
+    private string ToFinishedIcon(bool finished)
+    {
+        if (finished) 
+        {
+            return Icons.Filled.AlarmOn;
+        }
+
+        return Icons.Filled.Alarm;
+    }
+
+    private Color ToFinishedColor(bool finished)
+    {
+        if (finished) 
+        {
+            return Color.Success;
+        }
+
+        return Color.Dark;
+    }
+
+    private async Task OpenScheduledRace(ScheduledRace race)
+    {
+        var parameters = new DialogParameters
+            {
+                [nameof(RaceSchedulingDialog.ScheduledRace)] = race,
+                [nameof(RaceSchedulingDialog.IsReadonly)] = true
+            };
+
+        var dialog = _dialogService.Show<RaceSchedulingDialog>(Resource.RaceScheduling, parameters, GlobalDialogOptions.FullWidthDialogOptions());
+        var result = await dialog.Result;
+    }
+
+    private async Task EditScheduledRace(ScheduledRace race)
+    {
+        var parameters = new DialogParameters
+            {
+                [nameof(RaceSchedulingDialog.ScheduledRace)] = race,
+                [nameof(RaceSchedulingDialog.IsReadonly)] = false
+            };
+
+        var dialog = _dialogService.Show<RaceSchedulingDialog>(Resource.RaceScheduling, parameters, GlobalDialogOptions.FullWidthDialogOptions());
+        var result = await dialog.Result;
+
+        await LoadData(_token);
+    }
+
+    private async Task DeleteScheduledRace(ScheduledRace race)
+    {
+        bool? result = await _dialogService.ShowMessageBox(
+            "Warning", 
+            "Deleting can not be undone!", 
+            yesText:"Delete!", cancelText:"Cancel");
+
+        if (result == null)
+        {
+            return;
+        }
+
+        if (!await _raceSchedulingService.DeleteScheduledRace(_token, race.Id))
+        {
+            _snackbar.Add("deleted");
+        }
+
+        await LoadData(_token);
+    }
+
+    private async Task OpenStopwatch(ScheduledRace race)
+    {
+        var parameters = new DialogParameters
+            {
+                [nameof(StopwatchDialog.ScheduledRace)] = race
+            };
+
+        var dialog = _dialogService.Show<StopwatchDialog>(Resource.RaceScheduling, parameters, GlobalDialogOptions.FullWidthDialogOptions());
+        var result = await dialog.Result;
+    }
+}

@@ -1,0 +1,102 @@
+﻿@page "/registration"
+@inject NavigationManager _navigationManager;
+
+<MudContainer Class="mt-16">
+   
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@Resource.Title</MudText>
+    <MudText Typo="Typo.h5" Align="Align.Center">@Resource.RegistrationPortal</MudText>
+
+    @if(_locked) 
+    {
+        <MudAlert Severity="Severity.Warning" AlertTextPosition="AlertTextPosition.Center" Class="mt-4">@Resource.RegistrationLocked</MudAlert>
+    }
+    else 
+    {
+        @if (_selectedTeam != null)
+        {
+            <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Center" Class="mt-4">
+                <div class="d-flex flex-column justify-center">
+                    <MudText>
+                        @(string.Format(Resource.SelectedTeam, _selectedTeam.SelectedTeam.Name))
+                    </MudText>
+                    <MudButton Variant="Variant.Text"
+                            Color="Color.Info"
+                            StartIcon="@Icons.Material.Filled.Logout"
+                            OnClick="Logout">
+                        @Resource.Logout
+                    </MudButton>
+                </div>
+            </MudAlert>
+        }
+    
+        <MudPopover Open="@(!_dataWarningAccepted)" OverflowBehavior="OverflowBehavior.FlipAlways" AnchorOrigin="Origin.CenterCenter" TransformOrigin="Origin.BottomCenter">
+            <MudCard Class="mud-container mud-container-maxwidth-lg">
+                <MudCardHeader>
+                    @Resource.DataProtectionHint
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText Style="word-break: break-all;">
+                        @Resource.DataProtectionHintText
+                    </MudText>
+                    <MudLink Href="mailto:herbstregatta@trv-fidelia.de">@Resource.Email</MudLink>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton OnClick="@ToggleAccepted" Variant="Variant.Outlined" Color="Color.Info">@Resource.Ok</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudPopover>
+
+        <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6" Style="margin-top:20px">
+
+            <MudTabPanel Text="@Resource.Login" ToolTip="@Resource.LoginHelperText">
+                <Herbstregatta.Manager.Shared.Registration.TeamSelection OnSelectedTeamChanged="@OnSelectedTeamChanged" />
+            </MudTabPanel>
+        
+            <MudTabPanel Text="@Resource.TeamMembers" Disabled="@(_selectedTeam is null)" ToolTip="@Resource.TeamMembersHelperText">
+                <Herbstregatta.Manager.Shared.Registration.TeamSettings OnSelectedTeamChanged="@OnSelectedTeamChanged" SelectedTeam="@_selectedTeam" />
+            </MudTabPanel>
+
+            <MudTabPanel Text="@Resource.Registration" Disabled="@(_selectedTeam is null)" ToolTip="@Resource.RegistrationHelperText">
+                <Herbstregatta.Manager.Shared.Registration.AnnouncedRaces SelectedTeam="@_selectedTeam" />
+            </MudTabPanel>
+
+            <MudTabPanel Text="@Resource.RegisteredRaces" Disabled="@(_selectedTeam is null)" ToolTip="@Resource.RegisteredRacesHelperText">
+                <Herbstregatta.Manager.Shared.Registration.RegisteredRaces SelectedTeam="@_selectedTeam" />
+            </MudTabPanel>
+
+            <MudTabPanel Text="@Resource.Timetable" Disabled="@(_selectedTeam is null)" ToolTip="@Resource.RegisteredRacesHelperText">
+                <Herbstregatta.Manager.Shared.Scheduling.RaceSchedule SelectedTeam="_selectedTeam"/>
+            </MudTabPanel>
+
+        </MudTabs>
+    }
+</MudContainer>
+
+
+@code {
+    public bool _locked = false;
+    public bool _dataWarningAccepted = false;
+    private SelectedTeamData? _selectedTeam;
+
+    private void OnSelectedTeamChanged(SelectedTeamData selectedTeam)
+    {
+        _selectedTeam = selectedTeam;
+    }
+
+    private void ToggleAccepted()
+    {
+        if (_dataWarningAccepted)
+        {
+            _dataWarningAccepted = false;
+        }
+        else
+        {
+            _dataWarningAccepted = true;
+        }
+    }
+
+    private void Logout()
+    {
+        _selectedTeam = null;
+    }
+}

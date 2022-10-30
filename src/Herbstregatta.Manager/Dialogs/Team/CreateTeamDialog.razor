@@ -1,0 +1,127 @@
+@inject IRaceRegistrationService _raceEntryService
+@inject ISnackbar _snackbar
+
+<MudContainer Style="max-height: 70vh; overflow-y: auto;">
+    <MudDialog DisableSidePadding="true">
+        <TitleContent>
+            <MudText Typo="Typo.h6">
+                <MudIcon Icon="@Icons.Material.Filled.Create" Class="mr-3 mb-n1"/>
+                @Resource.CreateTeam
+            </MudText>
+        </TitleContent>
+        <DialogContent>
+            <MudGrid>
+                @if (errors.Count != 0) 
+                {
+                <MudItem xs="12">
+                    <MudList>
+                        @foreach (var err in errors)
+                        {
+                            <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                        }
+                    </MudList>
+                </MudItem>
+                }
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="name" Label="@Resource.Club" Required=true />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="phone" Label="@Resource.Phone"/>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="email" Label="@Resource.Email"/>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="password" Label="@Resource.TeamPassword" Required=true InputType="InputType.Password" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="password_repeat" Label="@Resource.RepeatPassword" Required=true InputType="InputType.Password" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="token" Label="@Resource.TeamToken" HelperText="@Resource.TeamTokenHelperText" InputType="InputType.Password" Required=true />
+                </MudItem>
+            </MudGrid>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton OnClick="SaveChanges" Color="Color.Primary">Save changes</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudContainer>
+
+@code {
+    [CascadingParameter] 
+    MudDialogInstance? MudDialog { get; set; }
+
+    private string name = string.Empty;
+    private string phone = string.Empty;
+    private string email = string.Empty;
+
+    private string password = string.Empty;
+
+    private string password_repeat = string.Empty;
+
+    private string token = string.Empty;
+
+    private List<string> errors = new List<string>();
+
+    private void Cancel()
+    {
+        MudDialog?.Cancel();
+    }
+
+    private bool ValidateInputs()
+    {
+        bool success = true;
+
+        if (string.IsNullOrEmpty(name))
+        {
+            errors.Add("Name must not be empty!");
+            success = false;
+        }
+
+        if (string.IsNullOrEmpty(token))
+        {
+            errors.Add("Token must not be empty!");
+            success = false;
+        }
+
+        if (string.IsNullOrEmpty(password))
+        {
+            errors.Add("Pasword name must not be empty!");
+            success = false;
+        }
+        if (password.Length < 2)
+        {
+            errors.Add("Password must have at least eight characters!");
+            success = false;
+        }
+        if (password != password_repeat)
+        {
+            errors.Add("Entered passwords do are not the same!");
+            success = false;
+        }
+        return success;
+    }
+
+    private async Task SaveChanges()
+    {
+        if (!ValidateInputs())
+        {
+            return;
+        }
+        var result = await _raceEntryService.CreateTeam(name, phone, email, password, token);
+
+        if (result != null)
+        {
+            _snackbar.Add($"Created team.", Severity.Success);
+            MudDialog?.Close(DialogResult.Ok(result.Id));
+        }
+        else
+        {
+            _snackbar.Add($"Failed to create the team!", Severity.Error);
+            MudDialog?.Close(DialogResult.Cancel());
+        }
+        return;
+    }
+}

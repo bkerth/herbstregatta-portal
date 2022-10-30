@@ -1,0 +1,261 @@
+@using System.Data
+@using Herbstregatta.Data.Services
+@using Herbstregatta.Manager.Dialogs.Registration
+@inject IRaceRegistrationService _entryService
+@inject IBackupService _backupService
+@inject IDialogService _dialogService
+
+@inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime
+
+<MudCardContent>
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Default" Indeterminate="true" Class="my-7" />
+    }
+    else
+    {
+        <MudGrid>
+            @if (_errors.Count != 0)
+            {
+                <MudItem xs="12">
+                    <MudList>
+                        @foreach (var err in _errors)
+                        {
+                            <MudListItem Text=@err Icon="@Icons.Material.Filled.Error" />
+                        }
+                    </MudList>
+                </MudItem>
+            }
+            @if (SelectedTeam == null)
+            {
+                <MudItem xs="12" Class="d-flex align-center gap-4">
+                    <MudTextField Label="@Resource.AdminToken" HelperText="@Resource.AdminTokenHelperText"
+                          @bind-Value="_token" InputType="InputType.Password" Disabled="@_raceEntryDataIsLoading"/>
+
+                    <MudButton Variant="Variant.Outlined"
+                       Color="Color.Secondary"
+                       StartIcon="@Icons.Material.Filled.NavigateNext"
+                       Disabled="@_raceEntryDataIsLoading"
+                       OnClick="LoadDataAsManagement">
+                            @Resource.LoadTable
+                    </MudButton>
+                </MudItem>
+            }
+
+            @if (SelectedTeam == null && (_configuredEntries != null && _configuredEntries.Any()))
+            {
+                <MudItem xs="12">
+                    <MudButton Variant="Variant.Outlined"
+                       Color="Color.Secondary"
+                       StartIcon="@Icons.Material.Filled.FileDownload"
+                       OnClick="ExportDataAsManagement">
+                        @Resource.DownloadEntriesAsExcel
+                    </MudButton>
+                </MudItem>
+            }
+
+            <MudItem xs="12">
+                <MudTable Hover="true" Breakpoint="Breakpoint.Sm" Dense="true" SortLabel="@Resource.SortByLabel"
+                        T="RegisteredRace" Items="@_configuredEntries" RowsPerPage="10"
+                      Loading="@_raceEntryDataIsLoading" LoadingProgressColor="Color.Info"
+                        MultiSelection="_enableSelection" @bind-SelectedItems="_selectedEntries"
+                        GroupBy="@_groupDefinition" GroupHeaderStyle="background-color:var(--mud-palette-background-grey)" GroupFooterClass="mb-4">
+
+                    <NoRecordsContent>
+                        <MudText>No records available</MudText>
+                    </NoRecordsContent>
+                    <LoadingContent>
+                        <MudText>Loading...</MudText>
+                    </LoadingContent>
+
+                    <HeaderContent>
+                        <MudTh Style="text-align:center;">@Resource.RaceNumber</MudTh>
+                        <MudTh>@Resource.RaceName</MudTh>
+                        @if(SelectedTeam == null)
+                        {
+                            <MudTh>@Resource.Club</MudTh>
+                        }
+                        <MudTh>@Resource.ListOfAthletes</MudTh>
+                        <MudTh>@Resource.Trainer</MudTh>
+                        <MudTh>@Resource.Phone</MudTh>
+                        <MudTh>@Resource.Email</MudTh>
+                        <MudTh>@Resource.BoatName</MudTh>
+                        <MudTh>@Resource.Edit</MudTh>
+                    </HeaderContent>
+
+                    <ColGroup>
+                        @if (_enableSelection)
+                        {
+                            <col style="width: 60px;" />  @*CheckBoxForSelection*@
+                        }
+                        <col />  @*RaceNumber*@
+                        <col />  @*RaceName*@
+                        @if (SelectedTeam == null)
+                        {
+                            <col />  @*Club*@
+                        }
+                        <col />  @*ListOfAthletes*@
+                        <col />  @*Trainer*@
+                        <col />  @*Phone*@
+                        <col />  @*Email*@
+                        <col />  @*BoatName*@
+                        <col />  @*Edit*@
+                    </ColGroup>
+
+                    <GroupHeaderTemplate>
+                        <MudTh Class="mud-table-cell-custom-group" colspan="9">@($"{context.GroupName}: {context.Key}")</MudTh>
+                    </GroupHeaderTemplate>
+                    
+                    <RowTemplate>
+
+                        <MudTd DataLabel="@Resource.RaceNumber" Style="text-align:center;">@context.AnnouncedRace.Number</MudTd>
+                        <MudTd DataLabel="@Resource.RaceName">@context.AnnouncedRace.Name</MudTd>
+                        @if (SelectedTeam == null)
+                        {
+                            <MudTd DataLabel="@Resource.Club">@context.Team.Name</MudTd>
+                        }
+                        <MudTd DataLabel="@Resource.ListOfAthletes" Style="text-align:center;">@context.Athletes.ToAthletesString()</MudTd>
+                        <MudTd DataLabel="@Resource.Trainer">@($"{context.Trainer.FirstName} {context.Trainer.Name}")</MudTd>
+                        <MudTd DataLabel="@Resource.Phone">@context.PhoneContact</MudTd>
+                        <MudTd DataLabel="@Resource.Email">@context.EmailContact</MudTd>
+                        <MudTd DataLabel="@Resource.BoatName">@context.BoatName</MudTd>
+                        <MudTd Style="text-align:center;">
+                            <MudIconButton 
+                                Color="Color.Warning"
+                                Icon="@Icons.Material.Filled.Edit"
+                                Size="Size.Medium" 
+                                OnClick="() => EditRaceEntry(context.Id)" />
+                        </MudTd>
+
+                    </RowTemplate>
+               
+                    <GroupFooterTemplate>
+                        <MudTh Class="mud-table-cell-custom-group mud-table-cell-custom-group-footer" colspan="9">@($"{Resource.CountOfRaceEntries}: {context.Items.Count()}")</MudTh>
+                    </GroupFooterTemplate>
+                    
+                    <PagerContent>
+                        <MudTablePager HidePageNumber="true" HideRowsPerPage="false" HorizontalAlignment="HorizontalAlignment.Center" />
+                    </PagerContent>
+
+                </MudTable>
+            </MudItem>
+        </MudGrid>        
+    }
+</MudCardContent>
+
+
+@code {
+    [Parameter]
+    public SelectedTeamData? SelectedTeam { get; set; }
+
+    private bool _loading = true;
+    private bool _raceEntryDataIsLoading = false;
+    private string _token = string.Empty;
+
+    private bool _enableSelection = false;
+
+    private List<string> _errors = new List<string>();
+    private ICollection<RegisteredRace> _configuredEntries = new List<RegisteredRace>();
+    private HashSet<RegisteredRace> _selectedEntries = new HashSet<RegisteredRace>();
+
+    private DialogOptions _dialogOptions = new DialogOptions
+    { 
+        MaxWidth = MaxWidth.Medium, 
+        FullWidth = true 
+    };
+
+    private TableGroupDefinition<RegisteredRace> _groupDefinition = new TableGroupDefinition<RegisteredRace>()
+        {
+            GroupName = Resource.Race,
+            Indentation = false,
+            Expandable = true,
+            Selector = (e) => e.AnnouncedRace.Name
+        };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        if (SelectedTeam != null)
+        {
+            _configuredEntries = await _entryService.GetTeamRaceEntries(SelectedTeam.SelectedTeam.Id, SelectedTeam.PlainPassword);
+        }
+
+        _loading = false;
+    }
+
+    private async Task LoadDataAsManagement()
+    {
+        _raceEntryDataIsLoading = true;
+
+        await Task.Delay(1);
+
+        if (string.IsNullOrWhiteSpace(_token))
+        {
+            _errors.Add("Please enter the token for management!");
+            return;
+        }
+
+        _configuredEntries = await _entryService.GetRaceEntries(_token);
+
+        await Task.Delay(1);
+
+        _raceEntryDataIsLoading = false;
+    }
+
+    private async Task ExportDataAsManagement()
+    {
+        if (string.IsNullOrWhiteSpace(_token))
+        {
+            _errors.Add("Please enter the token for management!");
+            return;
+        }
+
+        try
+        {
+            DataTable dataTable = DataTableHelpers.ToDataTable(_configuredEntries);
+            var excelStream = _backupService.ExportDataTableToExcel(dataTable, "Meldungen");
+
+            string fileName = $"Herbstregatta-Meldungen-{DateTime.Now.ToString("dd-MM-yyyy_HH-mm")}.xlsx";
+
+            await _jsRuntime.SaveAs(fileName, excelStream.ToArray());
+        }
+        catch(Exception)
+        {
+            _snackbar.Add("Failed to pepare data to download..");
+        }
+
+        return;
+    }
+
+    private async Task EditRaceEntry(int id)
+    {
+        var raceEntry = _configuredEntries.FirstOrDefault(r => r.Id.Equals(id));
+        if (raceEntry == null)
+        {
+            return;
+        }
+
+        var parameters = new DialogParameters
+        {
+                [nameof(EditRaceRegistrationDialog.RegisteredRace)] = raceEntry
+        };
+
+        var dialog = _dialogService.Show<EditRaceRegistrationDialog>(Resource.Edit, parameters, _dialogOptions);
+        var result = await dialog.Result;
+
+        if (SelectedTeam != null)
+        {
+            _configuredEntries = await _entryService.GetTeamRaceEntries(SelectedTeam.SelectedTeam.Id, SelectedTeam.PlainPassword);
+            return;
+        }
+        
+        if (!string.IsNullOrWhiteSpace(_token))
+        {
+            _configuredEntries = await _entryService.GetRaceEntries(_token);
+            return;
+        }
+    }
+}

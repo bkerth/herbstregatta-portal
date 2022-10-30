@@ -1,0 +1,483 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AddPerson" xml:space="preserve">
+    <value>Neue Person hinzufügen</value>
+  </data>
+  <data name="Administration" xml:space="preserve">
+    <value>Verwaltungsbereich</value>
+  </data>
+  <data name="AdministrationWrongAreaText" xml:space="preserve">
+    <value>Falls du dich für die Regatta anmelden willst, bist du hier falsch..</value>
+  </data>
+  <data name="AdminToken" xml:space="preserve">
+    <value>Passwort der Verwaltung</value>
+  </data>
+  <data name="AdminTokenHelperText" xml:space="preserve">
+    <value>Gib das Passwort für die Verwaltung ein!</value>
+  </data>
+  <data name="AnnouncementManagement" xml:space="preserve">
+    <value>Verwaltung der Ausschreibungen</value>
+  </data>
+  <data name="AssignSelectedRacesToRun" xml:space="preserve">
+    <value>Selektierte Rennen zu einem Lauf zusammenfassen</value>
+  </data>
+  <data name="Athlete" xml:space="preserve">
+    <value>Sportler:in</value>
+  </data>
+  <data name="Attention" xml:space="preserve">
+    <value>Achtung</value>
+  </data>
+  <data name="AttentionDeleteMessage" xml:space="preserve">
+    <value>Das Löschen kann nicht rückgängig gemacht werden!</value>
+  </data>
+  <data name="BirthYear" xml:space="preserve">
+    <value>Jahrgang</value>
+  </data>
+  <data name="Boat" xml:space="preserve">
+    <value>Boot</value>
+  </data>
+  <data name="BoatName" xml:space="preserve">
+    <value>Name des Boots</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="Category" xml:space="preserve">
+    <value>Kategorie</value>
+  </data>
+  <data name="Club" xml:space="preserve">
+    <value>Verein</value>
+  </data>
+  <data name="CountOfAthletes" xml:space="preserve">
+    <value>Anzahl der Ruderer</value>
+  </data>
+  <data name="CountOfRaceEntries" xml:space="preserve">
+    <value>Anzahl der gemeldeten Rennen</value>
+  </data>
+  <data name="Create" xml:space="preserve">
+    <value>Erstellen</value>
+  </data>
+  <data name="CreateNewRace" xml:space="preserve">
+    <value>Ein neues Rennen erstellen</value>
+  </data>
+  <data name="CreatePerson" xml:space="preserve">
+    <value>Person erstellen</value>
+  </data>
+  <data name="CreatePersonAbortMessage" xml:space="preserve">
+    <value>Das Hinzufügen einer neuen Person zum Team wurde abgebrochen.</value>
+  </data>
+  <data name="CreateRace" xml:space="preserve">
+    <value>Erstellen eines Rennens</value>
+  </data>
+  <data name="CreateRaceAbortMessage" xml:space="preserve">
+    <value>Das Erstellen eines neues Rennen wurde abgebrochen.</value>
+  </data>
+  <data name="CreateRaceSuccessMessage" xml:space="preserve">
+    <value>Ein neues Rennen wurde erstellt.</value>
+  </data>
+  <data name="CreateTeam" xml:space="preserve">
+    <value>Erstelle ein neues Team.</value>
+  </data>
+  <data name="CreateTeamAbortMessage" xml:space="preserve">
+    <value>Das Erstellen eines neuen Teams wurde abgebrochen.</value>
+  </data>
+  <data name="CreateTeamSuccessMessage" xml:space="preserve">
+    <value>Ein neues Team wurde erstellt.</value>
+  </data>
+  <data name="DataProtection" xml:space="preserve">
+    <value>Datenschutz</value>
+  </data>
+  <data name="DataProtectionHeader" xml:space="preserve">
+    <value>Datenschutzerklärung</value>
+  </data>
+  <data name="DataProtectionHint" xml:space="preserve">
+    <value>Hinweis zur Datenspeicherung</value>
+  </data>
+  <data name="DataProtectionHintText" xml:space="preserve">
+    <value>Hinweis zur Datenspeicherung bitte beachte, dass deine eingegebenen Daten bis maximal 3 Monate nach Ende der Veranstaltung bei uns gespeichert werden. Meldungen werden mit den Informationen "Name, Vorname Geburtsjahr und Teamzugehörigeit" veröffentlicht. Falls du damit nicht einverstanden bist, melde dich doch einfach direkt bei uns. Wir finden sicherlich eine Lösung :)</value>
+  </data>
+  <data name="Date" xml:space="preserve">
+    <value>Datum</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="DeletePerson" xml:space="preserve">
+    <value>Person entfernen</value>
+  </data>
+  <data name="DeletePersonAbortMessage" xml:space="preserve">
+    <value>Das Entfernen der Person aus dem Team wurde abgebrochen.</value>
+  </data>
+  <data name="DeletePersonSuccessMessage" xml:space="preserve">
+    <value>Die Person wurde erfolgreich aus dem Team entfernt.</value>
+  </data>
+  <data name="DeleteRace" xml:space="preserve">
+    <value>Rennen löschen?</value>
+  </data>
+  <data name="DeleteRaceRegistration" xml:space="preserve">
+    <value>Löschen der Meldung</value>
+  </data>
+  <data name="DeleteRaceRegistrationFailedMessage" xml:space="preserve">
+    <value>Löschen der Meldung ist fehlgeschlagen!</value>
+  </data>
+  <data name="DeleteRaceRegistrationSuccessMessage" xml:space="preserve">
+    <value>Das Löschen der Meldung war erfolgreich!</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="DownloadEntriesAsExcel" xml:space="preserve">
+    <value>Meldungen als Exceldatei herunterladen</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Bearbeiten</value>
+  </data>
+  <data name="EditRace" xml:space="preserve">
+    <value>Bearbeiten des Rennens</value>
+  </data>
+  <data name="EditRaceFailedMessage" xml:space="preserve">
+    <value>Das Bearbeiten des Rennens ist fehlgeschlagen.</value>
+  </data>
+  <data name="EditRaceRegistration" xml:space="preserve">
+    <value>Bearbeiten der Meldung</value>
+  </data>
+  <data name="EditRaceSuccessMessage" xml:space="preserve">
+    <value>Das Rennen wurde bearbeitet.</value>
+  </data>
+  <data name="Email" xml:space="preserve">
+    <value>E-Mail</value>
+  </data>
+  <data name="EnableSelection" xml:space="preserve">
+    <value>Auswahl aktivieren</value>
+  </data>
+  <data name="EntryId" xml:space="preserve">
+    <value>Nummer der Meldung</value>
+  </data>
+  <data name="FirstName" xml:space="preserve">
+    <value>Vorname</value>
+  </data>
+  <data name="FurtherInformation" xml:space="preserve">
+    <value>Weitere Informationen zu den Rennen</value>
+  </data>
+  <data name="HasCoxQuestion" xml:space="preserve">
+    <value>Ist das Boot gesteuert?</value>
+  </data>
+  <data name="Imprint" xml:space="preserve">
+    <value>Impressum</value>
+  </data>
+  <data name="ListOfAthletes" xml:space="preserve">
+    <value>Sportler:innen</value>
+  </data>
+  <data name="ListOfRaceRegistrations" xml:space="preserve">
+    <value>Gemeldete Rennen</value>
+  </data>
+  <data name="LoadTable" xml:space="preserve">
+    <value>Tabelleninhalt laden</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Anmelden</value>
+  </data>
+  <data name="LoginAbortMessage" xml:space="preserve">
+    <value>Der Login Versuch wurde abgebrochen.</value>
+  </data>
+  <data name="LoginFailedMessage" xml:space="preserve">
+    <value>Der Login ist fehlgeschlagen.</value>
+  </data>
+  <data name="LoginHelperText" xml:space="preserve">
+    <value>Melde dich an um dich für ein Rennen zu registrieren</value>
+  </data>
+  <data name="LoginSuccessMessage" xml:space="preserve">
+    <value>Der Login war erfolgreich.</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="MissingCategory" xml:space="preserve">
+    <value>Eine Kategorie wird benötigt!</value>
+  </data>
+  <data name="MissingDescription" xml:space="preserve">
+    <value>Eine Beschreibung wird benötigt!</value>
+  </data>
+  <data name="MissingPassword" xml:space="preserve">
+    <value>Das Passwort für diese Aktion fehlt!</value>
+  </data>
+  <data name="MissingRaceName" xml:space="preserve">
+    <value>Ein Name für das Rennen wird benötigt!</value>
+  </data>
+  <data name="MissingToken" xml:space="preserve">
+    <value>Ein Token wird für diese Aktion benötigt!</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>Nein</value>
+  </data>
+  <data name="NoPersonsInTeam" xml:space="preserve">
+    <value>Dem Team sind noch keine Personen hinzugefügt worden.</value>
+  </data>
+  <data name="NoTeamsConfigured" xml:space="preserve">
+    <value>Es sind noch keine Teams erstellt worden, bitte erstelle dein Team zum Fortfahren.</value>
+  </data>
+  <data name="NoTeamSelectedMessage" xml:space="preserve">
+    <value>Es ist noch kein Team ausgewählt. Bitte wähle dein Team aus, um dich anzumelden.</value>
+  </data>
+  <data name="Ok" xml:space="preserve">
+    <value>Alles klar!</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Passwort</value>
+  </data>
+  <data name="PersonAddedToTeam" xml:space="preserve">
+    <value>Eine Person wurde dem Team hinzugefügt.</value>
+  </data>
+  <data name="PersonNotFound" xml:space="preserve">
+    <value>Person wurde nicht gefunden. Id={0}</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>Telefon</value>
+  </data>
+  <data name="Position" xml:space="preserve">
+    <value>Position</value>
+  </data>
+  <data name="Race" xml:space="preserve">
+    <value>Rennen</value>
+  </data>
+  <data name="RaceInvitation" xml:space="preserve">
+    <value>Ausschreibung</value>
+  </data>
+  <data name="RaceName" xml:space="preserve">
+    <value>Rennen</value>
+  </data>
+  <data name="RaceNumber" xml:space="preserve">
+    <value>Nr</value>
+  </data>
+  <data name="RaceRegistration" xml:space="preserve">
+    <value>Anmeldung zum Rennen</value>
+  </data>
+  <data name="RaceScheduling" xml:space="preserve">
+    <value>Einteilung der Rennen</value>
+  </data>
+  <data name="RaceTrack" xml:space="preserve">
+    <value>Bahn</value>
+  </data>
+  <data name="Ranking" xml:space="preserve">
+    <value>Platzierung</value>
+  </data>
+  <data name="RegisteredRaces" xml:space="preserve">
+    <value>Gemeldete Rennen</value>
+  </data>
+  <data name="RegisteredRacesHelperText" xml:space="preserve">
+    <value>Hier siehst du deine gemeldeten Rennen</value>
+  </data>
+  <data name="RegisterForRace" xml:space="preserve">
+    <value>Anmeldung für ein Rennen</value>
+  </data>
+  <data name="Registration" xml:space="preserve">
+    <value>Rennmeldung</value>
+  </data>
+  <data name="RegistrationAfterLoginText" xml:space="preserve">
+    <value>Für das Rennen anmelden</value>
+  </data>
+  <data name="RegistrationBeforeLoginText" xml:space="preserve">
+    <value>Hier kannst du dich nach dem Login für das Rennen anmelden.</value>
+  </data>
+  <data name="RegistrationHelperText" xml:space="preserve">
+    <value>Hier kannst du deine Meldungen vornehmen</value>
+  </data>
+  <data name="RegistrationLocked" xml:space="preserve">
+    <value>Der Anmeldeschluss ist vorbei. Falls du Änderungswünsche hast, melde dich bitte beim Orga Team.</value>
+  </data>
+  <data name="RegistrationPortal" xml:space="preserve">
+    <value>Meldeportal</value>
+  </data>
+  <data name="RepeatPassword" xml:space="preserve">
+    <value>Wiederholte Eingabe des Passworts</value>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Rolle</value>
+  </data>
+  <data name="RunNumber" xml:space="preserve">
+    <value>Lauf Nr.</value>
+  </data>
+  <data name="SelectedTeam" xml:space="preserve">
+    <value>Du bist angemeldet mit dem Team "{0}"</value>
+  </data>
+  <data name="SelectTeamMember" xml:space="preserve">
+    <value>Wähle ein Teammitglied aus</value>
+  </data>
+  <data name="ShowEditOption" xml:space="preserve">
+    <value>Funktionen zum Bearbeiten</value>
+  </data>
+  <data name="SortByLabel" xml:space="preserve">
+    <value>Sortiere nach</value>
+  </data>
+  <data name="StartTime" xml:space="preserve">
+    <value>Startzeit</value>
+  </data>
+  <data name="Stopwatch" xml:space="preserve">
+    <value>Zeitnahme</value>
+  </data>
+  <data name="Swap" xml:space="preserve">
+    <value>Tauschen</value>
+  </data>
+  <data name="TeamMembers" xml:space="preserve">
+    <value>Team Mitglieder</value>
+  </data>
+  <data name="TeamMembersHelperText" xml:space="preserve">
+    <value>Hier kannst du Mitglieder zu deinem Team hinzufügen</value>
+  </data>
+  <data name="TeamOrAdminTokenHelperText" xml:space="preserve">
+    <value>Dein Team Passwort oder das Passwort der Verwaltung</value>
+  </data>
+  <data name="TeamPassword" xml:space="preserve">
+    <value>Passwort des Teams</value>
+  </data>
+  <data name="TeamSelectionHelperText" xml:space="preserve">
+    <value>Wählen dein Verein aus und melde dich mit deinem Passwort an.</value>
+  </data>
+  <data name="TeamToken" xml:space="preserve">
+    <value>Passwort für die Teamerstellung</value>
+  </data>
+  <data name="TeamTokenHelperText" xml:space="preserve">
+    <value>Gebe das Passwort ein, dass du von uns bekommen hast!</value>
+  </data>
+  <data name="Timetable" xml:space="preserve">
+    <value>Zeitplan</value>
+  </data>
+  <data name="Title" xml:space="preserve">
+    <value>Tübinger Herbstregatta</value>
+  </data>
+  <data name="Trainer" xml:space="preserve">
+    <value>Trainer:in</value>
+  </data>
+  <data name="UpdateRaceRegistrationFailedMessage" xml:space="preserve">
+    <value>Das Aktualisieren der Meldung ist fehlgeschlagen.</value>
+  </data>
+  <data name="UpdateRaceRegistrationSuccessMessage" xml:space="preserve">
+    <value>Das Aktualisieren der Meldung war erfolgreich.</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+</root>
