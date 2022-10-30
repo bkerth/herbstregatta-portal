@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Herbstregatta.Manager", "Herbstregatta.Manager\Herbstregatta.Manager.csproj", "{87F7502D-490A-45C3-BE85-3C0E0B7EA27F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Herbstregatta.Portal", "Herbstregatta.Portal\Herbstregatta.Portal.csproj", "{87F7502D-490A-45C3-BE85-3C0E0B7EA27F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Herbstregatta.Data", "Herbstregatta.Data\Herbstregatta.Data.csproj", "{E9D4A5F4-63E4-4116-B7AB-D9063040ECE3}"
 EndProject
